@@ -1,0 +1,110 @@
+"use client";
+
+import { useEffect, useState, useRef } from "react";
+import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { Bell } from "lucide-react";
+import Link from "next/link";
+import { timeAgo } from "@/lib/utils";
+
+export default function NotificationBell() {
+  const { status } = useSession();
+  const pathname = usePathname();
+  const [open, setOpen] = useState(false);
+  const [count, setCount] = useState(0);
+  const [recent, setRecent] = useState([]);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    let active = true;
+    (async () => {
+      try {
+        const res = await fetch("/api/notifications/unread", {
+          cache: "no-store",
+        });
+        const data = await res.json();
+        if (!active) return;
+        setCount(data.count || 0);
+        setRecent(data.recent || []);
+      } catch {
+        // ignore refetch failures
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [status, pathname]);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  if (status !== "authenticated") return null;
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button
+        onClick={() => setOpen(!open)}
+        className="relative p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+        aria-label="Notifications"
+      >
+        <Bell className="h-5 w-5" />
+        {count > 0 && (
+          <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 rounded-full bg-red-500 text-white text-[10px] font-semibold flex items-center justify-center">
+            {count > 9 ? "9+" : count}
+          </span>
+        )}
+      </button>
+
+      {open && (
+        <div className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-50">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+            <p className="text-sm font-semibold text-gray-900">Notifications</p>
+            <Link
+              href="/dashboard/notifications"
+              onClick={() => setOpen(false)}
+              className="text-xs font-medium text-indigo-600 hover:text-indigo-700 transition-colors"
+            >
+              View all
+            </Link>
+          </div>
+
+          {recent.length === 0 ? (
+            <p className="px-4 py-6 text-sm text-center text-gray-400">
+              No notifications yet
+            </p>
+          ) : (
+            <div className="max-h-80 overflow-y-auto divide-y divide-gray-100">
+              {recent.map((n) => (
+                <Link
+                  key={n.id}
+                  href={n.href || "/dashboard/notifications"}
+                  onClick={() => setOpen(false)}
+                  className="block px-4 py-3 hover:bg-gray-50 transition-colors"
+                >
+                  <p
+                    className={`text-sm ${
+                      n.isRead ? "text-gray-600" : "text-gray-900 font-medium"
+                    }`}
+                  >
+                    {n.message}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    {timeAgo(n.createdAt)}
+                  </p>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
