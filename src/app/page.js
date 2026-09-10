@@ -111,7 +111,7 @@ async function getStats() {
     ]);
     return { userCount, auctionCount, bidCount, endedCount };
   } catch {
-    return { userCount: 10, auctionCount: 19, bidCount: 74, endedCount: 5 };
+    return { userCount: 0, auctionCount: 0, bidCount: 0, endedCount: 0 };
   }
 }
 
