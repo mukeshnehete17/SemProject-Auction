@@ -27,18 +27,18 @@ export default function CountdownTimer({ startTime, endTime, status, className =
 
   if (status === "cancelled") {
     return (
-      <span className={`inline-flex items-center gap-1.5 text-gray-500 ${className}`}>
-        <Clock className="h-3.5 w-3.5" />
-        Cancelled
+      <span className={`inline-flex items-center gap-1.5 text-zinc-400 font-mono text-xs ${className}`}>
+        <Clock className="h-3.5 w-3.5 opacity-70" />
+        <span>Cancelled</span>
       </span>
     );
   }
 
   if (status === "ended") {
     return (
-      <span className={`inline-flex items-center gap-1.5 text-red-600 font-medium ${className}`}>
-        <Clock className="h-3.5 w-3.5" />
-        Ended
+      <span className={`inline-flex items-center gap-1.5 text-zinc-400 font-mono text-xs ${className}`}>
+        <Clock className="h-3.5 w-3.5 opacity-70" />
+        <span>Auction Closed</span>
       </span>
     );
   }
@@ -49,13 +49,13 @@ export default function CountdownTimer({ startTime, endTime, status, className =
   if (now < startMs) {
     const d = calcDiff(startMs);
     return (
-      <span className={`inline-flex items-center gap-1.5 text-blue-600 ${className}`}>
+      <span className={`inline-flex items-center gap-1.5 text-indigo-600 font-mono text-xs ${className}`}>
         <Clock className="h-3.5 w-3.5" />
-        {d.days > 0 && <span>{d.days}d</span>}
-        <span className="font-mono font-semibold tabular-nums">
+        {d.days > 0 && <span className="font-semibold">{d.days}d</span>}
+        <span className="font-semibold tabular-nums tracking-wider">
           {pad(d.hours)}:{pad(d.minutes)}:{pad(d.seconds)}
         </span>
-        to start
+        <span className="text-[10px] uppercase tracking-wider text-zinc-400 font-sans">starts</span>
       </span>
     );
   }
@@ -63,9 +63,9 @@ export default function CountdownTimer({ startTime, endTime, status, className =
   const d = calcDiff(endMs);
   if (d.total === 0) {
     return (
-      <span className={`inline-flex items-center gap-1.5 text-red-600 font-medium ${className}`}>
-        <Clock className="h-3.5 w-3.5" />
-        Ended
+      <span className={`inline-flex items-center gap-1.5 text-zinc-400 font-mono text-xs ${className}`}>
+        <Clock className="h-3.5 w-3.5 opacity-70" />
+        <span>Auction Closed</span>
       </span>
     );
   }
@@ -75,15 +75,15 @@ export default function CountdownTimer({ startTime, endTime, status, className =
   return (
     <span
       className={`inline-flex items-center gap-1.5 ${
-        isUrgent ? "text-red-600" : "text-gray-700"
-      } ${className}`}
+        isUrgent ? "text-rose-600" : "text-zinc-700"
+      } font-mono text-xs ${className}`}
     >
-      <Clock className="h-3.5 w-3.5" />
-      {d.days > 0 && <span>{d.days}d</span>}
-      <span className={`font-mono font-semibold tabular-nums ${isUrgent ? "animate-pulse" : ""}`}>
+      <Clock className={`h-3.5 w-3.5 ${isUrgent ? "text-rose-500 animate-pulse" : "text-zinc-400"}`} />
+      {d.days > 0 && <span className="font-semibold">{d.days}d</span>}
+      <span className="font-semibold tabular-nums tracking-wider">
         {pad(d.hours)}:{pad(d.minutes)}:{pad(d.seconds)}
       </span>
-      <span className="text-xs">left</span>
+      <span className="text-[10px] uppercase tracking-wider text-zinc-400 font-sans">left</span>
     </span>
   );
 }

@@ -1,6 +1,7 @@
 const { PrismaClient } = require("@prisma/client");
 const { PrismaBetterSqlite3 } = require("@prisma/adapter-better-sqlite3");
 const bcrypt = require("bcryptjs");
+const { isProductionSeedBlocked } = require("../scripts/seed-guard.cjs");
 require("dotenv/config");
 
 const dbPath = (process.env.DATABASE_URL || "file:./prisma/dev.db")
@@ -118,7 +119,7 @@ async function seedAuctionData(userByEmail, categoryBySlug) {
             { amount: 68000, bidderId: priya.id, createdAt: new Date(now.getTime() - 60 * 60 * 1000) },
             { amount: 69500, bidderId: krishna.id, createdAt: new Date(now.getTime() - 25 * 60 * 1000) },
             { amount: 71000, bidderId: rahul.id, createdAt: new Date(now.getTime() - 8 * 60 * 1000) },
-            { amount: 72500, bidderId: amit.id, createdAt: new Date(now.getTime() - 2 * 60 * 1000) },
+            { amount: 72500, bidderId: priya.id, createdAt: new Date(now.getTime() - 2 * 60 * 1000) },
           ],
         },
       },
@@ -345,7 +346,7 @@ async function seedAuctionData(userByEmail, categoryBySlug) {
         description: "GoPro Hero 12 Black action camera with waterproof housing. 5.3K video, HyperSmooth 6.0 stabilization.",
         image: "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600&h=400&fit=crop",
         startingPrice: 28000,
-        currentPrice: 0,
+        currentPrice: 28000,
         minimumIncrement: 1000,
         startTime: future,
         endTime: new Date(future.getTime() + 5 * 24 * 60 * 60 * 1000),
@@ -361,7 +362,7 @@ async function seedAuctionData(userByEmail, categoryBySlug) {
         description: "Collection of 50 rare Pokemon cards including holographic Charizard, Blastoise, and Pikachu. Mint condition.",
         image: "https://images.unsplash.com/photo-1611374243147-44a792e6f468?w=600&h=400&fit=crop",
         startingPrice: 25000,
-        currentPrice: 0,
+        currentPrice: 25000,
         minimumIncrement: 1000,
         startTime: future,
         endTime: new Date(future.getTime() + 10 * 24 * 60 * 60 * 1000),
@@ -621,8 +622,8 @@ async function seedPhase5Data(userByEmail, categoryBySlug) {
       'Premium 65-inch OLED smart TV with 4K resolution, Dolby Vision, and webOS. Originally purchased in 2024. Cancelled due to seller no longer available.',
     image: "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=600&h=400&fit=crop",
     startingPrice: 85000,
-    currentPrice: 0,
-    minimumIncrement: 2000,
+      currentPrice: 85000,
+      minimumIncrement: 2000,
     startTime: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000),
     endTime: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000),
     status: "CANCELLED",
@@ -668,17 +669,34 @@ async function main() {
   console.log(`  Watchlists: ${watchlistCount}`);
   console.log(`  Notifications: ${notificationCount}`);
   console.log("");
-  console.log("Demo accounts (password: BidZone@123):");
-  console.log(`  Admin:  admin@bidzone.local`);
-  console.log(`  Seller: seller@bidzone.local`);
-  console.log(`  Buyer:  buyer@bidzone.local`);
+  // Demo credentials are only printed outside production: the seed script
+  // runs during `npm run build`, and production build logs must never
+  // carry passwords.
+  if (process.env.NODE_ENV !== "production") {
+    console.log("Demo accounts (password: BidZone@123):");
+    console.log(`  Admin:  admin@bidzone.local`);
+    console.log(`  Seller: seller@bidzone.local`);
+    console.log(`  Buyer:  buyer@bidzone.local`);
+  }
 }
 
-main()
-  .catch((e) => {
-    console.error(e);
+module.exports = { isProductionSeedBlocked };
+
+if (require.main === module) {
+  if (isProductionSeedBlocked()) {
+    console.error(
+      "Refusing to seed: NODE_ENV=production without " +
+        "ALLOW_PROD_SEED=i-understand-data-loss. Demo seeding must never " +
+        "run against production; see docs/supabase-migration.md."
+    );
     process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+  }
+  main()
+    .catch((e) => {
+      console.error(e);
+      process.exit(1);
+    })
+    .finally(async () => {
+      await prisma.$disconnect();
+    });
+}

@@ -11,6 +11,7 @@ import {
   Link as LinkIcon,
   Calendar,
   IndianRupee,
+  Image as ImageIcon,
 } from "lucide-react";
 
 const emptyForm = {
@@ -130,25 +131,31 @@ export default function AuctionForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
-      <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
-        <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-          <FileText className="h-5 w-5 text-gray-400" />
-          Product Information
-        </h2>
+      {/* Product Details Section */}
+      <div className="bg-white rounded-2xl border border-zinc-200/90 p-6 sm:p-8 space-y-6">
+        <div className="border-b border-zinc-100 pb-4">
+          <h2 className="text-base font-bold text-zinc-900 tracking-tight flex items-center gap-2">
+            <FileText className="h-4.5 w-4.5 text-zinc-400" />
+            <span>Product & Lot Details</span>
+          </h2>
+          <p className="text-xs text-zinc-500 mt-1">
+            Specify accurate title, description, and high-resolution imagery for prospective bidders.
+          </p>
+        </div>
 
         <Input
-          label="Product Name"
+          label="Lot Title"
           name="name"
           value={form.name}
           onChange={handleChange}
-          placeholder="e.g. MacBook Air M2"
+          placeholder="e.g. Leica M6 Titanium 35mm Rangefinder Camera"
           error={errors.name}
           required
         />
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Description <span className="text-red-500 ml-1">*</span>
+          <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-1.5">
+            Lot Description <span className="text-rose-500 ml-1 font-normal">*</span>
           </label>
           <textarea
             name="description"
@@ -156,18 +163,18 @@ export default function AuctionForm({
             onChange={handleChange}
             rows={4}
             maxLength={500}
-            placeholder="Describe your product in detail..."
-            className={`w-full rounded-lg border px-4 py-2.5 text-sm text-gray-900 placeholder-gray-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition-colors resize-none ${
-              errors.description ? "border-red-500" : "border-gray-300"
+            placeholder="Describe provenance, cosmetic condition, serial numbers, and packaging..."
+            className={`w-full rounded-lg border px-3.5 py-2.5 text-sm text-zinc-900 placeholder-zinc-400 bg-white focus:border-zinc-950 focus:ring-1 focus:ring-zinc-950 focus:outline-none transition-colors resize-none shadow-2xs ${
+              errors.description ? "border-rose-400" : "border-zinc-300"
             }`}
           />
           <div className="flex items-center justify-between mt-1">
             {errors.description ? (
-              <p className="text-red-600 text-sm">{errors.description}</p>
+              <p className="text-rose-600 text-xs font-medium">{errors.description}</p>
             ) : (
               <span />
             )}
-            <p className="text-sm text-gray-400 ml-auto">
+            <p className="text-xs font-mono text-zinc-400 ml-auto">
               {form.description.length}/500
             </p>
           </div>
@@ -184,28 +191,27 @@ export default function AuctionForm({
         />
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Product Image
+          <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-1.5">
+            Product Visual (URL)
           </label>
-          <div className="flex items-center gap-2">
-            <div className="relative flex-1">
-              <Input
-                name="imageUrl"
-                value={form.imageUrl}
-                onChange={handleChange}
-                placeholder="https://example.com/image.jpg"
-                error={errors.imageUrl}
-                icon={LinkIcon}
-              />
-            </div>
+          <div className="relative">
+            <Input
+              name="imageUrl"
+              value={form.imageUrl}
+              onChange={handleChange}
+              placeholder="https://images.unsplash.com/..."
+              error={errors.imageUrl}
+              icon={LinkIcon}
+            />
           </div>
 
           {form.imageUrl && isValidImageUrl(form.imageUrl.trim()) ? (
             <div className="relative inline-block mt-4">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={form.imageUrl.trim()}
                 alt="Preview"
-                className="w-48 h-48 object-cover rounded-lg border border-gray-200"
+                className="w-48 h-48 object-cover rounded-xl border border-zinc-200 shadow-xs"
                 onError={(e) => {
                   e.currentTarget.style.display = "none";
                 }}
@@ -213,17 +219,18 @@ export default function AuctionForm({
               <button
                 type="button"
                 onClick={() => setForm((prev) => ({ ...prev, imageUrl: "" }))}
-                className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                className="absolute -top-2 -right-2 p-1 bg-zinc-900 text-white rounded-full hover:bg-rose-600 transition-colors shadow-xs"
+                aria-label="Remove image"
               >
-                <X className="h-4 w-4" />
+                <X className="h-3.5 w-3.5" />
               </button>
             </div>
           ) : (
             !form.imageUrl && (
-              <div className="mt-4 w-full border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                <Calendar className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-                <p className="text-sm text-gray-400">
-                  Paste an image URL above to preview it
+              <div className="mt-4 w-full border border-dashed border-zinc-200 rounded-xl p-8 text-center bg-zinc-50/50">
+                <ImageIcon className="h-7 w-7 text-zinc-300 mx-auto mb-2" />
+                <p className="text-xs text-zinc-400">
+                  Provide an image URL to preview the lot presentation
                 </p>
               </div>
             )
@@ -231,15 +238,21 @@ export default function AuctionForm({
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
-        <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-          <DollarSign className="h-5 w-5 text-gray-400" />
-          Auction Information
-        </h2>
+      {/* Pricing & Timing Section */}
+      <div className="bg-white rounded-2xl border border-zinc-200/90 p-6 sm:p-8 space-y-6">
+        <div className="border-b border-zinc-100 pb-4">
+          <h2 className="text-base font-bold text-zinc-900 tracking-tight flex items-center gap-2">
+            <DollarSign className="h-4.5 w-4.5 text-zinc-400" />
+            <span>Valuation & Schedule</span>
+          </h2>
+          <p className="text-xs text-zinc-500 mt-1">
+            Set starting reserve and bidding windows. All prices in INR (₹).
+          </p>
+        </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <Input
-            label="Starting Price"
+            label="Starting Reserve Price"
             name="startingPrice"
             type="number"
             value={form.startingPrice}
@@ -266,9 +279,9 @@ export default function AuctionForm({
           />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <Input
-            label="Start Date"
+            label="Auction Opening Date"
             name="startDate"
             type="date"
             value={form.startDate}
@@ -277,7 +290,7 @@ export default function AuctionForm({
             required
           />
           <Input
-            label="Start Time"
+            label="Opening Time"
             name="startTime"
             type="time"
             value={form.startTime}
@@ -287,9 +300,9 @@ export default function AuctionForm({
           />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <Input
-            label="End Date"
+            label="Closing Date"
             name="endDate"
             type="date"
             value={form.endDate}
@@ -298,7 +311,7 @@ export default function AuctionForm({
             required
           />
           <Input
-            label="End Time"
+            label="Closing Time"
             name="endTime"
             type="time"
             value={form.endTime}
@@ -310,16 +323,16 @@ export default function AuctionForm({
       </div>
 
       {formError && (
-        <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-2.5">
+        <div className="text-xs font-medium text-rose-700 bg-rose-50 border border-rose-200/80 rounded-xl p-4">
           {formError}
         </div>
       )}
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 pt-2">
         <Button type="submit" variant="primary" size="lg" disabled={loading}>
           {loading ? busyLabel : submitLabel}
         </Button>
-        <Button href="/dashboard/my-auctions" variant="secondary" size="lg">
+        <Button href="/dashboard/my-auctions" variant="outline" size="lg">
           Cancel
         </Button>
       </div>

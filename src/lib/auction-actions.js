@@ -3,13 +3,20 @@
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/session";
 import { deriveStatus } from "@/lib/auctions";
-import { formatPrice } from "@/lib/utils";
+import { normalizeBidAmount, validateBid, MAX_PRICE } from "@/lib/bids";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+// Module-private caps ("use server" modules may only export async actions).
+const MAX_TITLE_LENGTH = 120;
+const MAX_DESCRIPTION_LENGTH = 5000;
+const MAX_IMAGE_URL_LENGTH = 2048;
+
 function toPositiveNumber(value) {
   const n = Number(value);
-  return Number.isFinite(n) && n > 0 ? n : null;
+  if (!Number.isFinite(n) || n <= 0 || n > MAX_PRICE) return null;
+  // Whole rupees — avoids Float rounding drift in currency math.
+  return Number.isInteger(n) ? n : null;
 }
 
 function parseDateTime(date, time) {
@@ -19,15 +26,15 @@ function parseDateTime(date, time) {
 }
 
 function normalizeImage(image) {
-  const value = image ? image.trim() : "";
+  const value = image ? image.trim().slice(0, MAX_IMAGE_URL_LENGTH) : "";
   if (!value) return null;
   if (/^https?:\/\/\S+$/i.test(value) || value.startsWith("/")) return value;
   return null;
 }
 
 function getEditableFields(data) {
-  const title = typeof data.title === "string" ? data.title.trim() : "";
-  const description = typeof data.description === "string" ? data.description.trim() : "";
+  const title = typeof data.title === "string" ? data.title.trim().slice(0, MAX_TITLE_LENGTH) : "";
+  const description = typeof data.description === "string" ? data.description.trim().slice(0, MAX_DESCRIPTION_LENGTH) : "";
   const startingPrice = toPositiveNumber(data.startingPrice);
   const minimumIncrement = toPositiveNumber(data.minimumIncrement);
   const startTime = parseDateTime(data.startDate, data.startTime);
@@ -241,9 +248,9 @@ export async function placeBidAction(auctionId, amount) {
     return { error: "Admins cannot place bids." };
   }
 
-  const bidAmount = Number(amount);
-  if (!Number.isFinite(bidAmount) || bidAmount <= 0) {
-    return { error: "Please enter a valid bid amount." };
+  const bidAmount = normalizeBidAmount(amount);
+  if (bidAmount === null) {
+    return { error: "Please enter a valid whole-rupee bid amount." };
   }
 
   const numericId = Number.parseInt(auctionId, 10);
@@ -256,30 +263,14 @@ export async function placeBidAction(auctionId, amount) {
       const auction = await tx.auction.findUnique({
         where: { id: numericId },
       });
-      if (!auction) return { error: "Auction not found." };
 
-      if (auction.status === "CANCELLED") {
-        return { error: "This auction has been cancelled." };
-      }
-
-      const now = new Date();
-      if (now < auction.startTime) {
-        return { error: "This auction hasn't started yet." };
-      }
-      if (now >= auction.endTime) {
-        return { error: "This auction has already ended." };
-      }
-
-      if (auction.sellerId === user.id) {
-        return { error: "You cannot bid on your own auction." };
-      }
-
-      const minimumBid = auction.currentPrice + auction.minimumIncrement;
-      if (bidAmount < minimumBid) {
-        return {
-          error: `Your bid must be at least ${formatPrice(minimumBid)}.`,
-        };
-      }
+      const policyError = validateBid({
+        auction,
+        userId: user.id,
+        userRole: user.role,
+        amount: bidAmount,
+      });
+      if (policyError) return { error: policyError };
 
       const previousTop = await tx.bid.findFirst({
         where: { auctionId: numericId },
@@ -295,9 +286,22 @@ export async function placeBidAction(auctionId, amount) {
         },
       });
 
+      // Concurrency convergence: better-sqlite3 serializes writes but two
+      // simultaneous bids can both pass the minimum check against the same
+      // stale price. Recomputing MAX inside the same transaction guarantees
+      // currentPrice always equals the highest recorded bid, whichever bid
+      // commits last. Documented limitation: no row-level locking on this
+      // adapter, so both bids are recorded (correct auction semantics —
+      // each met the minimum at submit time) rather than one being rejected.
+      const top = await tx.bid.findFirst({
+        where: { auctionId: numericId },
+        orderBy: { amount: "desc" },
+        select: { amount: true },
+      });
+
       await tx.auction.update({
         where: { id: numericId },
-        data: { currentPrice: bidAmount },
+        data: { currentPrice: top ? top.amount : bidAmount },
       });
 
       if (previousTop && previousTop.bidderId !== user.id) {

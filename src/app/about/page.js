@@ -8,145 +8,161 @@ import {
   Zap,
   Heart,
   Award,
+  ArrowUpRight,
 } from "lucide-react";
-import Link from "next/link";
 
 const values = [
   {
     icon: Shield,
-    title: "Trust & Safety",
+    title: "Trust & Verified Origin",
     description:
-      "Every transaction is secured with industry-standard encryption and verification processes.",
+      "Every lot is backed by rigorous authentication and condition assessment before auction launch.",
   },
   {
     icon: Target,
-    title: "Transparency",
+    title: "Radical Transparency",
     description:
-      "Real-time bid tracking ensures every participant has equal visibility into the auction.",
+      "Real-time bid ledger ensures every participant has equal, immediate visibility into price formation.",
   },
   {
     icon: Users,
-    title: "Community",
+    title: "Curated Community",
     description:
-      "Join thousands of active bidders and sellers across India who trust TORI.",
+      "A collective of serious collectors, verified sellers, and technology enthusiasts across India.",
   },
   {
     icon: Zap,
-    title: "Innovation",
+    title: "Zero-Latency Architecture",
     description:
-      "We continuously improve our platform with new features and cutting-edge technology.",
+      "Engineered for sub-second bidding synchronisation, immediate push alerts, and high-frequency auctions.",
   },
   {
     icon: Heart,
-    title: "Fairness",
+    title: "Uncompromising Fairness",
     description:
-      "Our system ensures equal opportunity for all bidders with anti-sniping protection.",
+      "Strict anti-sniping timers and automated bidding safeguards prevent unfair last-second manipulation.",
   },
   {
     icon: Award,
-    title: "Excellence",
+    title: "Curatorial Excellence",
     description:
-      "We strive for the best user experience in every interaction on our platform.",
+      "We prioritize rare, distinctive, and high-demand electronics and collectible lots over volume.",
   },
 ];
 
 const team = [
   {
     name: "Krishna Patel",
-    role: "Founder & Developer",
-    bio: "Passionate about building technology that connects people through fair and transparent commerce.",
-    color: "bg-indigo-600",
+    role: "Founder & Lead Engineer",
+    bio: "Passionate about full-stack systems architecture, real-time transaction protocols, and digital marketplace design.",
     initials: "KP",
   },
   {
     name: "Aryan Sharma",
-    role: "Co-Founder",
-    bio: "Expert in business strategy and operations with a vision to revolutionize online auctions in India.",
-    color: "bg-emerald-600",
+    role: "Co-Founder & Operations",
+    bio: "Strategist focused on logistics, seller provenance validation, and auction consignment pipelines.",
     initials: "AS",
   },
   {
     name: "Priya Deshmukh",
-    role: "UI/UX Designer",
-    bio: "Creative designer focused on crafting intuitive and beautiful user experiences.",
-    color: "bg-rose-600",
+    role: "Lead Product Designer",
+    bio: "Creative lead shaping the editorial visual language, micro-interactions, and bidder experience of TORI.",
     initials: "PD",
   },
 ];
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-
-      <section className="bg-gray-900 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold">About TORI</h1>
-          <p className="mt-4 text-lg text-gray-300 max-w-2xl mx-auto">
-            Building the future of online auctions in India
+    <div className="min-h-screen flex flex-col bg-white">
+      {/* Hero Editorial Header with Floating Glass Navbar */}
+      <div className="bg-zinc-950 text-white border-b border-zinc-900">
+        <Navbar />
+        <section>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 text-center">
+            <p className="text-xs font-mono uppercase tracking-widest text-indigo-400 mb-3">
+              The Story & Ethos
+            </p>
+          <h1 className="text-4xl sm:text-6xl font-black tracking-tight text-white max-w-3xl mx-auto leading-tight">
+            About TORI
+          </h1>
+          <p className="mt-4 text-sm sm:text-base text-zinc-400 max-w-xl mx-auto leading-relaxed">
+            Pioneering transparent digital auction commerce for rare electronics, hardware, and certified lots.
           </p>
         </div>
       </section>
+      </div>
 
-      <section className="py-16 bg-white">
+      {/* Mission & Metrics Split Section */}
+      <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            <div className="lg:col-span-7 space-y-6">
+              <span className="text-xs font-mono uppercase tracking-widest text-indigo-600 font-semibold">
                 Our Mission
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-zinc-950 leading-tight">
+                Democratizing access to high-value price discovery.
               </h2>
-              <p className="text-gray-600 leading-relaxed">
-                TORI was created to make online auctions accessible,
-                transparent, and exciting for everyone in India. We believe that
-                everyone should have the opportunity to discover unique products
-                and get great deals through fair competitive bidding.
+              <p className="text-sm sm:text-base text-zinc-600 leading-relaxed">
+                TORI was created to eliminate opacity from online auctions. We believe that collectors and consignors deserve a high-fidelity platform where price formation happens openly, authenticated lots are guaranteed, and competitive auctions feel as exhilarating as an in-person auction house.
+              </p>
+              <p className="text-sm text-zinc-600 leading-relaxed">
+                By pairing editorial design with modern real-time database transactions, TORI elevates college semester engineering into an enterprise-grade digital auction environment.
               </p>
             </div>
-            <div className="bg-gray-50 rounded-2xl p-8 grid grid-cols-2 gap-6">
-              <div className="text-center">
-                <p className="text-3xl font-bold text-indigo-600">1,250+</p>
-                <p className="text-sm text-gray-600 mt-1">Active Users</p>
+
+            <div className="lg:col-span-5 bg-zinc-50 border border-zinc-200/90 rounded-2xl p-8 grid grid-cols-2 gap-6">
+              <div className="space-y-1">
+                <p className="text-3xl font-black font-mono text-zinc-950 tracking-tight">1,250+</p>
+                <p className="text-xs font-mono uppercase tracking-wider text-zinc-400">Verified Bidders</p>
               </div>
-              <div className="text-center">
-                <p className="text-3xl font-bold text-indigo-600">320+</p>
-                <p className="text-sm text-gray-600 mt-1">Live Auctions</p>
+              <div className="space-y-1">
+                <p className="text-3xl font-black font-mono text-zinc-950 tracking-tight">320+</p>
+                <p className="text-xs font-mono uppercase tracking-wider text-zinc-400">Curated Drops</p>
               </div>
-              <div className="text-center">
-                <p className="text-3xl font-bold text-indigo-600">950+</p>
-                <p className="text-sm text-gray-600 mt-1">Completed</p>
+              <div className="space-y-1">
+                <p className="text-3xl font-black font-mono text-zinc-950 tracking-tight">950+</p>
+                <p className="text-xs font-mono uppercase tracking-wider text-zinc-400">Hammer Closes</p>
               </div>
-              <div className="text-center">
-                <p className="text-3xl font-bold text-indigo-600">₹50L+</p>
-                <p className="text-sm text-gray-600 mt-1">Total Volume</p>
+              <div className="space-y-1">
+                <p className="text-3xl font-black font-mono text-indigo-600 tracking-tight">₹50L+</p>
+                <p className="text-xs font-mono uppercase tracking-wider text-zinc-400">Settled Volume</p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="py-16 bg-gray-50">
+      {/* Core Values */}
+      <section className="py-20 bg-zinc-50 border-y border-zinc-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900">Our Values</h2>
-            <p className="mt-2 text-gray-600">
-              The principles that guide everything we do
+          <div className="text-center max-w-2xl mx-auto mb-14">
+            <span className="text-xs font-mono uppercase tracking-widest text-indigo-600 font-semibold">
+              Principles
+            </span>
+            <h2 className="text-3xl font-black text-zinc-950 tracking-tight mt-1">
+              Core Tenets of Our Platform
+            </h2>
+            <p className="mt-2 text-sm text-zinc-500">
+              The non-negotiable operational standards governing every transaction.
             </p>
           </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {values.map((value) => {
+            {values.map((value, idx) => {
               const Icon = value.icon;
               return (
                 <div
-                  key={value.title}
-                  className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition-shadow"
+                  key={idx}
+                  className="bg-white rounded-2xl border border-zinc-200/90 p-7 hover:border-zinc-300 hover:shadow-xs transition-all"
                 >
-                  <div className="h-12 w-12 rounded-xl bg-indigo-100 flex items-center justify-center mb-4">
-                    <Icon className="h-6 w-6 text-indigo-600" />
+                  <div className="w-10 h-10 rounded-xl bg-zinc-950 text-white flex items-center justify-center mb-5">
+                    <Icon className="h-5 w-5 text-indigo-400" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  <h3 className="text-base font-bold text-zinc-950 mb-2 tracking-tight">
                     {value.title}
                   </h3>
-                  <p className="text-sm text-gray-600 leading-relaxed">
+                  <p className="text-xs text-zinc-600 leading-relaxed">
                     {value.description}
                   </p>
                 </div>
@@ -156,34 +172,39 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="py-16 bg-white">
+      {/* Team */}
+      <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900">Meet the Team</h2>
-            <p className="mt-2 text-gray-600">
-              The people behind TORI
+          <div className="text-center max-w-2xl mx-auto mb-14">
+            <span className="text-xs font-mono uppercase tracking-widest text-indigo-600 font-semibold">
+              Leadership
+            </span>
+            <h2 className="text-3xl font-black text-zinc-950 tracking-tight mt-1">
+              Meet the Founders
+            </h2>
+            <p className="mt-2 text-sm text-zinc-500">
+              The team architecting the next generation of online auction marketplaces.
             </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-4xl mx-auto">
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
             {team.map((member) => (
               <div
                 key={member.name}
-                className="text-center"
+                className="bg-zinc-50 border border-zinc-200/80 rounded-2xl p-6 text-center space-y-3"
               >
-                <div
-                  className={`h-20 w-20 rounded-full ${member.color} flex items-center justify-center mx-auto mb-4`}
-                >
-                  <span className="text-2xl font-bold text-white">
-                    {member.initials}
-                  </span>
+                <div className="w-16 h-16 rounded-full bg-zinc-950 text-white flex items-center justify-center mx-auto text-lg font-bold font-mono">
+                  {member.initials}
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {member.name}
-                </h3>
-                <p className="text-sm text-indigo-600 font-medium mt-1">
-                  {member.role}
-                </p>
-                <p className="text-sm text-gray-600 mt-3 leading-relaxed">
+                <div>
+                  <h3 className="text-base font-bold text-zinc-950">
+                    {member.name}
+                  </h3>
+                  <p className="text-xs font-mono uppercase tracking-wider text-indigo-600 mt-0.5">
+                    {member.role}
+                  </p>
+                </div>
+                <p className="text-xs text-zinc-600 leading-relaxed pt-1">
                   {member.bio}
                 </p>
               </div>
@@ -192,17 +213,19 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold text-gray-900">
-            Join TORI Today
+      {/* Final CTA */}
+      <section className="py-20 bg-zinc-950 text-white border-t border-zinc-900 text-center">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
+          <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
+            Join the TORI Marketplace
           </h2>
-          <p className="mt-3 text-gray-600 max-w-lg mx-auto">
-            Be part of India&apos;s fastest growing auction platform.
+          <p className="text-sm text-zinc-400 max-w-md mx-auto">
+            Experience fair, transparent, and certified auctions today.
           </p>
-          <div className="mt-8">
-            <Button href="/register" variant="primary" size="lg">
-              Get Started
+          <div className="pt-2">
+            <Button href="/register" variant="accent" size="lg" className="group">
+              <span>Create Account</span>
+              <ArrowUpRight className="h-4 w-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
             </Button>
           </div>
         </div>

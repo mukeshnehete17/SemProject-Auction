@@ -6,7 +6,7 @@ import { ToastProvider } from "@/components/ui/Toast";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import Button from "@/components/ui/Button";
-import { AlertCircle } from "lucide-react";
+import { PackageSearch } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -25,18 +25,23 @@ export default async function AuctionDetailPage({ params }) {
 
   if (!auction) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen flex flex-col bg-white">
         <Navbar />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
-          <AlertCircle className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            Auction not found
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center my-auto">
+          <div className="w-16 h-16 rounded-full bg-zinc-100 border border-zinc-200 flex items-center justify-center mx-auto mb-6 text-zinc-400">
+            <PackageSearch className="h-8 w-8" />
+          </div>
+          <span className="text-xs font-mono uppercase tracking-widest text-zinc-400">
+            Record Not Found
+          </span>
+          <h1 className="text-3xl font-black text-zinc-950 mt-1 mb-3 tracking-tight">
+            Auction Lot Unavailable
           </h1>
-          <p className="text-gray-600 mb-6">
-            The auction you&apos;re looking for doesn&apos;t exist or has been removed.
+          <p className="text-sm text-zinc-500 mb-8 max-w-sm mx-auto">
+            The requested lot does not exist in the database or has been archived from public listing.
           </p>
-          <Button href="/auctions" variant="primary">
-            Browse Auctions
+          <Button href="/auctions" variant="primary" size="lg">
+            Return to Catalogue
           </Button>
         </div>
         <Footer />

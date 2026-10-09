@@ -16,17 +16,24 @@ export default async function CreateAuctionPage() {
   const categories = await getCategories();
 
   return (
-    <div className="space-y-6 max-w-3xl">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Create Auction</h1>
-        <p className="text-gray-500 mt-1">List your product for auction</p>
+    <div className="space-y-6 max-w-4xl">
+      <div className="border-b border-zinc-200/80 pb-6">
+        <span className="text-[10px] font-mono uppercase tracking-widest text-indigo-600 font-semibold">
+          Consignment Desk
+        </span>
+        <h1 className="text-2xl sm:text-3xl font-black text-zinc-950 tracking-tight mt-1">
+          Catalogue a New Auction Lot
+        </h1>
+        <p className="text-xs sm:text-sm text-zinc-500 mt-1">
+          Submit product details, schedule opening and closing windows, and set starting reserves.
+        </p>
       </div>
 
       <AuctionForm
         categories={categories}
         action={createAuctionAction}
-        submitLabel="Create Auction"
-        busyLabel="Creating..."
+        submitLabel="Publish Lot for Bidding"
+        busyLabel="Validating & Publishing..."
       />
     </div>
   );

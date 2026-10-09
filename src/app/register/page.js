@@ -7,7 +7,7 @@ import Footer from "@/components/layout/Footer";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import { useToast, ToastProvider } from "@/components/ui/Toast";
-import { Mail, Lock, User, ShoppingBag, Store } from "lucide-react";
+import { Mail, Lock, User, ShoppingBag, Store, ArrowUpRight } from "lucide-react";
 import { registerAction } from "./actions";
 
 function RegisterForm() {
@@ -29,7 +29,7 @@ function RegisterForm() {
     if (!form.email) {
       errs.email = "Email is required";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-      errs.email = "Please enter a valid email";
+      errs.email = "Please enter a valid email address";
     }
     if (!form.password) {
       errs.password = "Password is required";
@@ -67,51 +67,55 @@ function RegisterForm() {
       return;
     }
 
-    toast("Account created successfully!", "success");
+    toast("Account created successfully! Redirecting to login...", "success");
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-zinc-50">
       <Navbar />
-      <div className="flex-1 flex items-center justify-center px-4 py-12">
+
+      <div className="flex-1 flex items-center justify-center px-4 py-16 sm:py-20">
         <div className="w-full max-w-md">
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8">
-            <div className="text-center mb-8">
-              <h1 className="text-2xl font-bold text-gray-900">
-                Create Account
+          <div className="bg-white rounded-2xl border border-zinc-200/90 shadow-sm p-8 sm:p-10 space-y-6">
+            <div className="text-center space-y-2">
+              <span className="text-[10px] font-mono uppercase tracking-widest text-indigo-600 font-semibold">
+                New Participant
+              </span>
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-zinc-950">
+                Create TORI Account
               </h1>
-              <p className="text-sm text-gray-600 mt-1">
-                Join TORI and start bidding today
+              <p className="text-xs text-zinc-500">
+                Join the platform for verified auction participation
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-4 pt-2">
               <Input
                 label="Full Name"
                 type="text"
                 name="fullName"
                 value={form.fullName}
                 onChange={(e) => setForm({ ...form, fullName: e.target.value })}
-                placeholder="John Doe"
+                placeholder="Rohan Sharma"
                 icon={User}
                 error={errors.fullName}
                 required
               />
 
               <Input
-                label="Email"
+                label="Email Address"
                 type="email"
                 name="email"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
-                placeholder="you@example.com"
+                placeholder="collector@example.com"
                 icon={Mail}
                 error={errors.email}
                 required
               />
 
               <Input
-                label="Password"
+                label="Security Password"
                 type="password"
                 name="password"
                 value={form.password}
@@ -136,71 +140,83 @@ function RegisterForm() {
                 required
               />
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Account Type <span className="text-red-500 ml-1">*</span>
+              {/* Account Type Selector */}
+              <div className="pt-1">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-2">
+                  Designated Role <span className="text-rose-500 ml-1 font-normal">*</span>
                 </label>
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     type="button"
                     onClick={() => setForm({ ...form, accountType: "buyer" })}
-                    className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
+                    className={`flex flex-col items-center gap-2 p-4 rounded-xl border text-center transition-all cursor-pointer ${
                       form.accountType === "buyer"
-                        ? "border-indigo-600 bg-indigo-50 text-indigo-700"
-                        : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
+                        ? "border-zinc-950 bg-zinc-950 text-white shadow-xs"
+                        : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-400"
                     }`}
                   >
-                    <ShoppingBag className="h-6 w-6" />
-                    <span className="text-sm font-medium">Buyer</span>
+                    <ShoppingBag className="h-5 w-5" />
+                    <span className="text-xs font-bold uppercase tracking-wider">Buyer</span>
+                    <span className={`text-[10px] ${form.accountType === "buyer" ? "text-zinc-400" : "text-zinc-500"}`}>
+                      Place bids & win
+                    </span>
                   </button>
+
                   <button
                     type="button"
                     onClick={() => setForm({ ...form, accountType: "seller" })}
-                    className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
+                    className={`flex flex-col items-center gap-2 p-4 rounded-xl border text-center transition-all cursor-pointer ${
                       form.accountType === "seller"
-                        ? "border-indigo-600 bg-indigo-50 text-indigo-700"
-                        : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
+                        ? "border-zinc-950 bg-zinc-950 text-white shadow-xs"
+                        : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-400"
                     }`}
                   >
-                    <Store className="h-6 w-6" />
-                    <span className="text-sm font-medium">Seller</span>
+                    <Store className="h-5 w-5" />
+                    <span className="text-xs font-bold uppercase tracking-wider">Seller</span>
+                    <span className={`text-[10px] ${form.accountType === "seller" ? "text-zinc-400" : "text-zinc-500"}`}>
+                      List lots & consign
+                    </span>
                   </button>
                 </div>
                 {errors.accountType && (
-                  <p className="text-red-600 text-sm mt-1">
+                  <p className="text-rose-600 text-xs mt-1.5 font-medium">
                     {errors.accountType}
                   </p>
                 )}
               </div>
 
-              <Button
-                type="submit"
-                disabled={loading}
-                className="w-full"
-                size="lg"
-              >
-                {loading ? "Creating account..." : "Create Account"}
-              </Button>
-
               {formError && (
-                <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-2.5">
+                <div className="text-xs font-medium text-rose-700 bg-rose-50 border border-rose-200/80 rounded-xl p-3">
                   {formError}
-                </p>
+                </div>
               )}
+
+              <div className="pt-2">
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full"
+                  size="lg"
+                >
+                  {loading ? "Registering Record..." : "Confirm & Create Account"}
+                </Button>
+              </div>
             </form>
 
-            <p className="mt-6 text-center text-sm text-gray-600">
-              Already have an account?{" "}
+            <div className="text-center pt-2 border-t border-zinc-100 text-xs text-zinc-500">
+              Already possess an account?{" "}
               <Link
                 href="/login"
-                className="font-medium text-indigo-600 hover:text-indigo-500"
+                className="font-semibold text-indigo-600 hover:text-indigo-800 transition-colors inline-flex items-center gap-0.5"
               >
-                Sign in
+                <span>Sign in here</span>
+                <ArrowUpRight className="h-3 w-3" />
               </Link>
-            </p>
+            </div>
           </div>
         </div>
       </div>
+
       <Footer />
     </div>
   );

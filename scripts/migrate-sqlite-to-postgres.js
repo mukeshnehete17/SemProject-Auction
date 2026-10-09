@@ -1,0 +1,268 @@
+#!/usr/bin/env node
+/*
+ * TORI one-time SQLite -> Supabase PostgreSQL transfer.
+ *
+ * EXECUTION BOUNDARY: this file is application-side preparation only. Do NOT
+ * run it until (a) the Supabase project + credentials exist, (b) the
+ * postgres baseline migration has been applied to the empty destination,
+ * and (c) a reviewer has approved the run. It performs no destructive
+ * operation on its own — but a reviewed, deliberate invocation is required.
+ *
+ * Safety properties:
+ *  - Backs up the SQLite source file before reading it (source is opened
+ *    read-only and never modified).
+ *  - Default `--mode=empty-only` aborts if ANY destination table already
+ *    holds rows. `--mode=reviewed` additionally requires REVIEWED_MERGE
+ *    env confirmation, and still never drops, truncates or deletes.
+ *  - No DROP / TRUNCATE / DELETE statement exists in this file.
+ *  - All inserts run in ONE transaction: any failure rolls everything back.
+ *  - Primary keys are preserved verbatim; Postgres sequences are repaired
+ *    with setval() afterwards so future inserts do not collide.
+ *  - Validation compares per-table row counts plus FK/hash/price samples;
+ *    any mismatch exits non-zero and the run is NOT declared successful.
+ *
+ * Usage (after review only):
+ *   TARGET_DATABASE_URL="<supabase DIRECT (5432) url>" \
+ *   SOURCE_DATABASE_URL="file:./prisma/dev.db" \
+ *   node scripts/migrate-sqlite-to-postgres.js [--mode=empty-only|reviewed]
+ *
+ * Never point TARGET at the pooler (6543) for this script: DDL-adjacent
+ * bulk work and sequence repair must use the direct Session-mode URL.
+ */
+
+const fs = require("fs");
+const path = require("path");
+const Database = require("better-sqlite3");
+const { Pool } = require("pg");
+
+const TABLES = ["User", "Category", "Auction", "Bid", "Watchlist", "Notification"];
+
+function fail(message) {
+  console.error(`[transfer] FATAL: ${message}`);
+  process.exit(1);
+}
+
+function parseArgs(argv) {
+  const opts = { mode: "empty-only" };
+  for (const arg of argv.slice(2)) {
+    if (arg.startsWith("--mode=")) opts.mode = arg.slice("--mode=".length);
+    else fail(`Unknown argument: ${arg}`);
+  }
+  if (!["empty-only", "reviewed"].includes(opts.mode)) {
+    fail(`--mode must be empty-only or reviewed (got "${opts.mode}").`);
+  }
+  return opts;
+}
+
+function resolveSourceFile() {
+  const raw = process.env.SOURCE_DATABASE_URL || "file:./prisma/dev.db";
+  const rel = raw.replace(/^file:/, "");
+  return path.isAbsolute(rel) ? rel : path.join(process.cwd(), rel);
+}
+
+function backupSource(sourceFile) {
+  if (!fs.existsSync(sourceFile)) fail(`Source SQLite file not found: ${sourceFile}`);
+  const dir = path.join(process.cwd(), "prisma", "backups");
+  fs.mkdirSync(dir, { recursive: true });
+  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+  const dest = path.join(dir, `dev-backup-${stamp}.db`);
+  fs.copyFileSync(sourceFile, dest);
+  console.log(`[transfer] Source backed up to ${dest}`);
+  return dest;
+}
+
+function boolToPg(value) {
+  if (value === null || value === undefined) return null;
+  return value ? true : false;
+}
+
+async function main() {
+  const { mode } = parseArgs(process.argv);
+
+  const target = process.env.TARGET_DATABASE_URL;
+  if (!target) {
+    fail("TARGET_DATABASE_URL is required. Refusing to guess a destination.");
+  }
+  if (!/^(postgres(ql)?):\/\//i.test(target)) {
+    fail("TARGET_DATABASE_URL must be a postgres(ql) URL. Refusing to write anywhere else.");
+  }
+  if (/:6543(\/|$|\?)/.test(target)) {
+    fail("TARGET looks like a Supabase pooler URL (port 6543). Use the direct Session-mode URL (port 5432) for transfers.");
+  }
+
+  const sourceFile = resolveSourceFile();
+  backupSource(sourceFile);
+  const src = new Database(sourceFile, { readonly: true });
+
+  const pool = new Pool({
+    connectionString: target,
+    max: 3,
+    connectionTimeoutMillis: 15_000,
+  });
+  const client = await pool.connect();
+  try {
+    // --- Destination emptiness gate -------------------------------------
+    const existing = {};
+    for (const table of TABLES) {
+      const r = await client.query(`SELECT COUNT(*)::int AS n FROM "${table}"`);
+      existing[table] = r.rows[0].n;
+    }
+    const total = Object.values(existing).reduce((a, b) => a + b, 0);
+    if (total > 0 && mode !== "reviewed") {
+      fail(
+        `Destination is NOT empty ${JSON.stringify(existing)}. ` +
+          `Refusing to transfer in default empty-only mode. Re-run with ` +
+          `--mode=reviewed only after explicit review (this still never drops data).`
+      );
+    }
+    if (total > 0 && process.env.REVIEWED_MERGE !== "i-have-a-reviewed-backup") {
+      fail(
+        "Destination has data and --mode=reviewed was given without " +
+          "REVIEWED_MERGE=i-have-a-reviewed-backup. Aborting."
+      );
+    }
+
+    // --- Load source rows -------------------------------------------------
+    const users = src.prepare("SELECT * FROM User ORDER BY id").all();
+    const categories = src.prepare("SELECT * FROM Category ORDER BY id").all();
+    const auctions = src.prepare("SELECT * FROM Auction ORDER BY id").all();
+    const bids = src.prepare("SELECT * FROM Bid ORDER BY id").all();
+    const watchlist = src.prepare("SELECT * FROM Watchlist ORDER BY id").all();
+    const notifications = src.prepare("SELECT * FROM Notification ORDER BY id").all();
+    console.log(
+      `[transfer] Source rows: ${JSON.stringify({
+        User: users.length,
+        Category: categories.length,
+        Auction: auctions.length,
+        Bid: bids.length,
+        Watchlist: watchlist.length,
+        Notification: notifications.length,
+      })}`
+    );
+
+    // --- Single-transaction insert (all-or-nothing) -----------------------
+    await client.query("BEGIN");
+    try {
+      for (const u of users) {
+        await client.query(
+          `INSERT INTO "User"(id, name, email, password, role, "createdAt", "updatedAt") VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+          [u.id, u.name, u.email, u.password, u.role, u.createdAt, u.updatedAt]
+        );
+      }
+      for (const c of categories) {
+        await client.query(
+          `INSERT INTO "Category"(id, name, slug, "createdAt") VALUES ($1,$2,$3,$4)`,
+          [c.id, c.name, c.slug, c.createdAt]
+        );
+      }
+      for (const a of auctions) {
+        await client.query(
+          `INSERT INTO "Auction"(id, title, description, image, "startingPrice", "currentPrice", "minimumIncrement", "startTime", "endTime", status, "createdAt", "updatedAt", "sellerId", "categoryId") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
+          [
+            a.id, a.title, a.description, a.image, a.startingPrice, a.currentPrice,
+            a.minimumIncrement, a.startTime, a.endTime, a.status, a.createdAt,
+            a.updatedAt, a.sellerId, a.categoryId,
+          ]
+        );
+      }
+      for (const b of bids) {
+        await client.query(
+          `INSERT INTO "Bid"(id, amount, "createdAt", "auctionId", "bidderId") VALUES ($1,$2,$3,$4,$5)`,
+          [b.id, b.amount, b.createdAt, b.auctionId, b.bidderId]
+        );
+      }
+      for (const w of watchlist) {
+        await client.query(
+          `INSERT INTO "Watchlist"(id, "createdAt", "userId", "auctionId") VALUES ($1,$2,$3,$4)`,
+          [w.id, w.createdAt, w.userId, w.auctionId]
+        );
+      }
+      for (const n of notifications) {
+        await client.query(
+          `INSERT INTO "Notification"(id, message, type, "referenceId", "isRead", "createdAt", "userId") VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+          [n.id, n.message, n.type, n.referenceId, boolToPg(n.isRead), n.createdAt, n.userId]
+        );
+      }
+
+      // Repair serial sequences so future inserts continue after max(id).
+      for (const table of TABLES) {
+        await client.query(
+          `SELECT setval(pg_get_serial_sequence($1, 'id'), COALESCE((SELECT MAX(id) FROM "${table}"), 1))`,
+          [`public."${table}"`]
+        );
+      }
+      await client.query("COMMIT");
+    } catch (err) {
+      await client.query("ROLLBACK");
+      throw err;
+    }
+
+    // --- Validation --------------------------------------------------------
+    const problems = [];
+    const counts = {};
+    for (const table of TABLES) {
+      const r = await client.query(`SELECT COUNT(*)::int AS n FROM "${table}"`);
+      counts[table] = r.rows[0].n;
+    }
+    const expected = {
+      User: users.length,
+      Category: categories.length,
+      Auction: auctions.length,
+      Bid: bids.length,
+      Watchlist: watchlist.length,
+      Notification: notifications.length,
+    };
+    for (const table of TABLES) {
+      if (counts[table] < expected[table]) {
+        problems.push(`${table}: expected >= ${expected[table]} rows, found ${counts[table]}`);
+      }
+    }
+
+    const orphans = await client.query(`
+      SELECT
+        (SELECT COUNT(*) FROM "Auction" a LEFT JOIN "User" u ON u.id = a."sellerId" WHERE u.id IS NULL)::int AS bad_auction_seller,
+        (SELECT COUNT(*) FROM "Auction" a LEFT JOIN "Category" c ON c.id = a."categoryId" WHERE c.id IS NULL)::int AS bad_auction_category,
+        (SELECT COUNT(*) FROM "Bid" b LEFT JOIN "Auction" a ON a.id = b."auctionId" WHERE a.id IS NULL)::int AS bad_bid_auction,
+        (SELECT COUNT(*) FROM "Bid" b LEFT JOIN "User" u ON u.id = b."bidderId" WHERE u.id IS NULL)::int AS bad_bid_bidder,
+        (SELECT COUNT(*) FROM "Watchlist" w LEFT JOIN "User" u ON u.id = w."userId" WHERE u.id IS NULL)::int AS bad_watch_user,
+        (SELECT COUNT(*) FROM "Watchlist" w LEFT JOIN "Auction" a ON a.id = w."auctionId" WHERE a.id IS NULL)::int AS bad_watch_auction,
+        (SELECT COUNT(*) FROM "Notification" n LEFT JOIN "User" u ON u.id = n."userId" WHERE u.id IS NULL)::int AS bad_notif_user
+    `);
+    for (const [k, v] of Object.entries(orphans.rows[0])) {
+      if (v !== 0) problems.push(`Referential check failed: ${k} = ${v}`);
+    }
+
+    // Password hashes + prices must survive byte-identical / value-identical.
+    const hashRows = await client.query(`SELECT id, password FROM "User" ORDER BY id`);
+    const srcHashes = new Map(users.map((u) => [u.id, u.password]));
+    for (const row of hashRows.rows) {
+      if (srcHashes.has(row.id) && srcHashes.get(row.id) !== row.password) {
+        problems.push(`Password hash mismatch for user id ${row.id}`);
+      }
+    }
+    const priceRows = await client.query(`SELECT id, "currentPrice" FROM "Auction" ORDER BY id`);
+    const srcPrices = new Map(auctions.map((a) => [a.id, a.currentPrice]));
+    for (const row of priceRows.rows) {
+      if (srcPrices.has(row.id) && Number(srcPrices.get(row.id)) !== Number(row.currentPrice)) {
+        problems.push(`currentPrice mismatch for auction id ${row.id}`);
+      }
+    }
+
+    console.log(`[transfer] Destination counts: ${JSON.stringify(counts)}`);
+    if (problems.length > 0) {
+      console.error("[transfer] VALIDATION FAILED:");
+      for (const p of problems) console.error(`  - ${p}`);
+      process.exit(1);
+    }
+    console.log("[transfer] SUCCESS: all counts match and relationship checks passed.");
+  } finally {
+    client.release();
+    await pool.end();
+    src.close();
+  }
+}
+
+main().catch((err) => {
+  console.error(`[transfer] FAILED: ${err && err.message ? err.message : err}`);
+  process.exit(1);
+});

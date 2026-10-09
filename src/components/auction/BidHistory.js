@@ -1,4 +1,5 @@
 import { formatPrice } from "@/lib/utils";
+import { UserCheck } from "lucide-react";
 
 function timeAgo(time) {
   const diff = Date.now() - new Date(time).getTime();
@@ -16,39 +17,52 @@ function timeAgo(time) {
 export default function BidHistory({ bids = [] }) {
   if (bids.length === 0) {
     return (
-      <div className="text-center py-8 text-sm text-gray-500">
-        No bids yet. Be the first to bid!
+      <div className="text-center py-12 text-xs font-mono text-zinc-400 bg-zinc-50/50 rounded-xl border border-dashed border-zinc-200">
+        No bids have been recorded yet. Place the inaugural bid!
       </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full">
+    <div className="overflow-x-auto rounded-xl border border-zinc-200/90">
+      <table className="w-full text-left border-collapse">
         <thead>
-          <tr className="bg-gray-50">
-            <th className="text-left text-xs font-medium text-gray-500 uppercase px-4 py-3">
-              Bidder
-            </th>
-            <th className="text-left text-xs font-medium text-gray-500 uppercase px-4 py-3">
-              Amount
-            </th>
-            <th className="text-left text-xs font-medium text-gray-500 uppercase px-4 py-3">
-              Time
-            </th>
+          <tr className="bg-zinc-50 border-b border-zinc-200 text-[10px] font-mono uppercase tracking-wider text-zinc-500">
+            <th className="px-4 py-3">Bidder</th>
+            <th className="px-4 py-3">Amount</th>
+            <th className="px-4 py-3">Timestamp</th>
+            <th className="px-4 py-3 text-right">Status</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-200">
+        <tbody className="divide-y divide-zinc-100 text-xs">
           {bids.map((bid, index) => (
-            <tr key={index} className="hover:bg-gray-50 transition-colors">
-              <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                {bid.bidder}
+            <tr
+              key={index}
+              className={`hover:bg-zinc-50/80 transition-colors ${
+                index === 0 ? "bg-indigo-50/20" : ""
+              }`}
+            >
+              <td className="px-4 py-3 font-semibold text-zinc-900 flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-zinc-100 text-zinc-600 flex items-center justify-center text-[10px] font-bold">
+                  {bid.bidder?.[0]?.toUpperCase() || "B"}
+                </div>
+                <span>{bid.bidder}</span>
               </td>
-              <td className="px-4 py-3 text-sm font-semibold text-indigo-600">
+              <td className="px-4 py-3 font-mono font-bold text-zinc-950 text-sm">
                 {formatPrice(bid.amount)}
               </td>
-              <td className="px-4 py-3 text-sm text-gray-500">
+              <td className="px-4 py-3 font-mono text-zinc-400 text-[11px]">
                 {timeAgo(bid.time)}
+              </td>
+              <td className="px-4 py-3 text-right">
+                {index === 0 ? (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
+                    <UserCheck className="h-3 w-3" />
+                    Leading
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-mono text-zinc-400">Outbid</span>
+                )}
               </td>
             </tr>
           ))}

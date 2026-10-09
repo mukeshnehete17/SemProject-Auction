@@ -1,0 +1,97 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+// PostgreSQL (Supabase) schema for TORI. This file is intentionally
+// identical in models to prisma/schema.prisma (SQLite, local
+// development) — only the provider differs. Do not let the two model
+// sets drift: any model change must be applied to both files, with a
+// migration generated for each provider separately.
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("BUYER")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  auctions  Auction[]
+  bids      Bid[]
+  notifications Notification[]
+  watchlist Watchlist[]
+}
+
+model Category {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  slug      String   @unique
+  createdAt DateTime @default(now())
+
+  auctions Auction[]
+}
+
+model Auction {
+  id               Int      @id @default(autoincrement())
+  title            String
+  description      String
+  image            String?
+  startingPrice    Float
+  currentPrice     Float
+  minimumIncrement Float
+  startTime        DateTime
+  endTime          DateTime
+  status           String   @default("ACTIVE")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  sellerId Int
+  seller   User   @relation(fields: [sellerId], references: [id])
+
+  categoryId Int
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  bids Bid[]
+  watchlist Watchlist[]
+}
+
+model Watchlist {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+
+  userId    Int
+  user      User    @relation(fields: [userId], references: [id])
+
+  auctionId Int
+  auction   Auction @relation(fields: [auctionId], references: [id])
+
+  @@unique([userId, auctionId])
+}
+
+model Bid {
+  id        Int      @id @default(autoincrement())
+  amount    Float
+  createdAt DateTime @default(now())
+
+  auctionId Int
+  auction   Auction @relation(fields: [auctionId], references: [id])
+
+  bidderId Int
+  bidder   User    @relation(fields: [bidderId], references: [id])
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  message   String
+  type      String?
+  referenceId Int?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+}

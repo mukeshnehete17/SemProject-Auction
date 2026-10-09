@@ -6,9 +6,10 @@ import StatusBadge from "@/components/ui/StatusBadge";
 import Button from "@/components/ui/Button";
 import EmptyState from "@/components/ui/EmptyState";
 import Modal from "@/components/ui/Modal";
+import ImageWithFallback from "@/components/ui/ImageWithFallback";
 import { cancelAuctionAction } from "@/lib/auction-actions";
 import { formatPrice, formatDateTime } from "@/lib/utils";
-import { Eye, Edit, Trash2, Plus, Package, ImageOff } from "lucide-react";
+import { Eye, Edit, Trash2, Plus, Package } from "lucide-react";
 
 const tabs = ["All", "Active", "Upcoming", "Ended", "Cancelled"];
 
@@ -72,14 +73,16 @@ export default function MyAuctionsContent({ auctions, initialCreated, initialUpd
   const renderToast = () => (
     <>
       {initialToast && (
-        <div className="fixed bottom-4 right-4 z-50 bg-green-600 text-white text-sm font-medium px-4 py-3 rounded-lg shadow-lg animate-fade-in">
+        <div className="fixed bottom-5 right-5 z-50 bg-zinc-950 border border-zinc-800 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl">
           {initialToast}
         </div>
       )}
       {toastMessage && (
         <div
-          className={`fixed bottom-20 right-4 z-50 text-white text-sm font-medium px-4 py-3 rounded-lg shadow-lg animate-fade-in ${
-            toastType === "success" ? "bg-green-600" : "bg-red-600"
+          className={`fixed bottom-20 right-5 z-50 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl ${
+            toastType === "success"
+              ? "bg-zinc-950 border border-zinc-800"
+              : "bg-rose-950 border border-rose-800 text-rose-200"
           }`}
         >
           {toastMessage}
@@ -92,26 +95,34 @@ export default function MyAuctionsContent({ auctions, initialCreated, initialUpd
     <div className="space-y-6">
       {renderToast()}
 
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-200/80 pb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">My Auctions</h1>
-          <p className="text-gray-500 mt-1">Manage your auction listings</p>
+          <span className="text-[10px] font-mono uppercase tracking-widest text-indigo-600 font-semibold">
+            Consignor Control
+          </span>
+          <h1 className="text-2xl sm:text-3xl font-black text-zinc-950 tracking-tight mt-1">
+            My Consigned Auctions
+          </h1>
+          <p className="text-xs sm:text-sm text-zinc-500 mt-1">
+            Manage, edit, monitor, and cancel your marketplace inventory.
+          </p>
         </div>
         <Button href="/dashboard/create-auction" variant="primary" size="md">
           <Plus className="h-4 w-4" />
-          Create Auction
+          <span>Consign New Lot</span>
         </Button>
       </div>
 
-      <div className="flex items-center gap-1 border-b border-gray-200">
+      {/* Tabs */}
+      <div className="flex items-center gap-2 border-b border-zinc-200">
         {tabs.map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+            className={`px-4 py-3 text-xs sm:text-sm font-bold tracking-tight border-b-2 transition-colors cursor-pointer ${
               activeTab === tab
-                ? "border-indigo-600 text-indigo-600"
-                : "border-transparent text-gray-500 hover:text-gray-700"
+                ? "border-zinc-950 text-zinc-950"
+                : "border-transparent text-zinc-400 hover:text-zinc-700"
             }`}
           >
             {tab}
@@ -122,122 +133,92 @@ export default function MyAuctionsContent({ auctions, initialCreated, initialUpd
       {filtered.length === 0 ? (
         <EmptyState
           icon={Package}
-          title="No auctions found"
-          description={`You don't have any ${activeTab.toLowerCase()} auctions yet.`}
+          title="No Auctions Found"
+          description={`You do not currently possess any ${activeTab.toLowerCase()} auction records.`}
         />
       ) : (
         <>
-          <div className="hidden md:block bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <table className="w-full">
+          {/* Desktop Table */}
+          <div className="hidden md:block bg-white rounded-2xl border border-zinc-200/90 overflow-hidden shadow-2xs">
+            <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-gray-200 bg-gray-50">
-                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
-                    Auction
-                  </th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
-                    Current Bid
-                  </th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
-                    Bids
-                  </th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
-                    End Time
-                  </th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
-                    Status
-                  </th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
-                    Winner
-                  </th>
-                  <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase">
-                    Actions
-                  </th>
+                <tr className="border-b border-zinc-200 bg-zinc-50/70 text-[10px] font-mono uppercase tracking-wider text-zinc-500">
+                  <th className="px-5 py-3.5">Lot / Auction</th>
+                  <th className="px-4 py-3.5">Current Valuation</th>
+                  <th className="px-4 py-3.5">Bids</th>
+                  <th className="px-4 py-3.5">Close Date</th>
+                  <th className="px-4 py-3.5">Status</th>
+                  <th className="px-4 py-3.5">Winning Party</th>
+                  <th className="px-5 py-3.5 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-zinc-100 text-xs">
                 {filtered.map((auction) => (
-                  <tr key={auction.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3">
+                  <tr key={auction.id} className="hover:bg-zinc-50/70 transition-colors">
+                    <td className="px-5 py-3.5">
                       <div className="flex items-center gap-3">
-                        {auction.image ? (
-                          <img
+                        <div className="w-11 h-11 rounded-lg overflow-hidden shrink-0 border border-zinc-200">
+                          <ImageWithFallback
                             src={auction.image}
                             alt={auction.title}
-                            className="w-10 h-10 rounded-lg object-cover shrink-0"
+                            category={auction.category}
+                            className="w-full h-full object-cover"
                           />
-                        ) : (
-                          <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
-                            <Package className="h-4 w-4 text-gray-400" />
-                          </div>
-                        )}
-                        <span className="text-sm font-medium text-gray-900">
-                          {auction.title}
-                        </span>
+                        </div>
+                        <div className="min-w-0 max-w-xs">
+                          <p className="text-xs font-bold text-zinc-950 truncate">
+                            {auction.title}
+                          </p>
+                          <p className="text-[10px] font-mono text-zinc-400">
+                            LOT #{String(auction.id).slice(-4).padStart(4, "0")}
+                          </p>
+                        </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-sm font-semibold text-gray-900">
+                    <td className="px-4 py-3.5 font-mono font-bold text-zinc-950 text-sm">
                       {auction.numberOfBids > 0
                         ? formatPrice(auction.currentPrice)
-                        : "No bids"}
+                        : <span className="text-zinc-400 font-normal">Opening {formatPrice(auction.startingPrice)}</span>}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-700">{auction.numberOfBids}</td>
-                    <td className="px-4 py-3 text-sm text-gray-500">
+                    <td className="px-4 py-3.5 font-mono text-zinc-600">
+                      {auction.numberOfBids}
+                    </td>
+                    <td className="px-4 py-3.5 font-mono text-zinc-500 text-[11px]">
                       {formatDateTime(auction.endTime)}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3.5">
                       <StatusBadge status={auction.status} />
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-700">
+                    <td className="px-4 py-3.5 text-zinc-600">
                       {auction.status === "ended" ? (
                         auction.winner ? (
-                          <span>
+                          <span className="font-semibold text-zinc-900">
                             {auction.winner.bidderName} ·{" "}
-                            <span className="font-semibold text-gray-900">
+                            <span className="font-mono text-indigo-600">
                               {formatPrice(auction.winner.amount)}
                             </span>
                           </span>
                         ) : (
-                          <span className="text-gray-400">No winner</span>
+                          <span className="text-zinc-400 font-mono text-[11px]">No reserve reached</span>
                         )
                       ) : (
-                        <span className="text-gray-400">—</span>
+                        <span className="text-zinc-300 font-mono">—</span>
                       )}
                     </td>
-                    <td className="px-4 py-3">
-<div>
-                    <p className="text-gray-500">Status</p>
-                    <StatusBadge status={auction.status} />
-                  </div>
-                  <div>
-                    <p className="text-gray-500">Winner</p>
-                    {auction.status === "ended" ? (
-                      auction.winner ? (
-                        <p className="text-gray-700">
-                          {auction.winner.bidderName} ·{" "}
-                          <span className="font-semibold text-gray-900">
-                            {formatPrice(auction.winner.amount)}
-                          </span>
-                        </p>
-                      ) : (
-                        <p className="text-gray-400">No winner</p>
-                      )
-                    ) : (
-                      <p className="text-gray-400">—</p>
-                    )}
-                  </div>
-                  <div className="flex items-center justify-end gap-1">
+                    <td className="px-5 py-3.5 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
                         <Link
                           href={`/auctions/${auction.id}`}
-                          className="p-2 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
-                          title="View"
+                          className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-950 hover:bg-zinc-100 transition-colors"
+                          title="View Auction Room"
                         >
                           <Eye className="h-4 w-4" />
                         </Link>
                         {canEdit(auction) && (
                           <Link
                             href={`/dashboard/my-auctions/${auction.id}/edit`}
-                            className="p-2 rounded-lg text-gray-400 hover:text-amber-600 hover:bg-amber-50 transition-colors"
-                            title="Edit"
+                            className="p-1.5 rounded-lg text-zinc-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                            title="Edit Listing Details"
                           >
                             <Edit className="h-4 w-4" />
                           </Link>
@@ -248,8 +229,8 @@ export default function MyAuctionsContent({ auctions, initialCreated, initialUpd
                               setCancelError("");
                               setCancelTarget(auction);
                             }}
-                            className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                            title="Cancel"
+                            className="p-1.5 rounded-lg text-zinc-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                            title="Cancel Listing"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -262,75 +243,77 @@ export default function MyAuctionsContent({ auctions, initialCreated, initialUpd
             </table>
           </div>
 
-          <div className="md:hidden space-y-3">
+          {/* Mobile Cards */}
+          <div className="md:hidden space-y-3.5">
             {filtered.map((auction) => (
               <div
                 key={auction.id}
-                className="bg-white rounded-xl border border-gray-200 p-4 space-y-3"
+                className="bg-white rounded-2xl border border-zinc-200/90 p-4 space-y-3 shadow-2xs"
               >
                 <div className="flex items-start gap-3">
-                  {auction.image ? (
-                    <img
+                  <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0 border border-zinc-200">
+                    <ImageWithFallback
                       src={auction.image}
                       alt={auction.title}
-                      className="w-12 h-12 rounded-lg object-cover shrink-0"
+                      category={auction.category}
+                      className="w-full h-full object-cover"
                     />
-                  ) : (
-                    <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
-                      <ImageOff className="h-5 w-5 text-gray-400" />
-                    </div>
-                  )}
+                  </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">
+                    <p className="text-sm font-bold text-zinc-950 truncate">
                       {auction.title}
                     </p>
-                    <StatusBadge status={auction.status} />
+                    <div className="mt-1">
+                      <StatusBadge status={auction.status} />
+                    </div>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3 text-sm">
+
+                <div className="grid grid-cols-2 gap-3 text-xs pt-2 border-t border-zinc-100">
                   <div>
-                    <p className="text-gray-500">Current Bid</p>
-                    <p className="font-semibold text-gray-900">
+                    <span className="text-[10px] uppercase font-mono text-zinc-400">Current Valuation</span>
+                    <p className="font-mono font-bold text-zinc-950 mt-0.5">
                       {auction.numberOfBids > 0
                         ? formatPrice(auction.currentPrice)
-                        : "No bids"}
+                        : formatPrice(auction.startingPrice)}
                     </p>
                   </div>
                   <div>
-                    <p className="text-gray-500">Bids</p>
-                    <p className="text-gray-700">{auction.numberOfBids}</p>
+                    <span className="text-[10px] uppercase font-mono text-zinc-400">Total Bids</span>
+                    <p className="font-mono text-zinc-700 mt-0.5">{auction.numberOfBids}</p>
                   </div>
-                  <div>
-                    <p className="text-gray-500">End Time</p>
-                    <p className="text-gray-700">{formatDateTime(auction.endTime)}</p>
+                  <div className="col-span-2">
+                    <span className="text-[10px] uppercase font-mono text-zinc-400">Scheduled Close</span>
+                    <p className="font-mono text-zinc-600 mt-0.5">{formatDateTime(auction.endTime)}</p>
                   </div>
-                  <div className="flex items-center justify-end gap-1">
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-2 border-t border-zinc-100">
+                  <Link
+                    href={`/auctions/${auction.id}`}
+                    className="p-2 rounded-lg text-zinc-500 hover:bg-zinc-100"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Link>
+                  {canEdit(auction) && (
                     <Link
-                      href={`/auctions/${auction.id}`}
-                      className="p-2 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                      href={`/dashboard/my-auctions/${auction.id}/edit`}
+                      className="p-2 rounded-lg text-indigo-600 hover:bg-indigo-50"
                     >
-                      <Eye className="h-4 w-4" />
+                      <Edit className="h-4 w-4" />
                     </Link>
-                    {canEdit(auction) && (
-                      <Link
-                        href={`/dashboard/my-auctions/${auction.id}/edit`}
-                        className="p-2 rounded-lg text-gray-400 hover:text-amber-600 hover:bg-amber-50 transition-colors"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Link>
-                    )}
-                    {canCancel(auction) && (
-                      <button
-                        onClick={() => {
-                          setCancelError("");
-                          setCancelTarget(auction);
-                        }}
-                        className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    )}
-                  </div>
+                  )}
+                  {canCancel(auction) && (
+                    <button
+                      onClick={() => {
+                        setCancelError("");
+                        setCancelTarget(auction);
+                      }}
+                      className="p-2 rounded-lg text-rose-600 hover:bg-rose-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
@@ -338,35 +321,35 @@ export default function MyAuctionsContent({ auctions, initialCreated, initialUpd
         </>
       )}
 
+      {/* Cancel Confirmation Modal */}
       <Modal
         isOpen={!!cancelTarget}
         onClose={() => setCancelTarget(null)}
-        title="Cancel Auction"
+        title="Cancel Auction Lot"
       >
         <div className="space-y-4">
-          <div className="flex items-center gap-3 p-4 bg-red-50 rounded-lg">
-            <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center shrink-0">
-              <Package className="h-5 w-5 text-red-600" />
+          <div className="flex items-center gap-3 p-4 bg-rose-50 border border-rose-100 rounded-xl">
+            <div className="w-10 h-10 rounded-lg bg-rose-100 flex items-center justify-center shrink-0">
+              <Package className="h-5 w-5 text-rose-600" />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-900">
+              <p className="text-xs font-bold text-zinc-950">
                 {cancelTarget?.title}
               </p>
-              <p className="text-xs text-gray-500">
-                Are you sure you want to cancel this auction?
+              <p className="text-[11px] text-zinc-500">
+                Are you certain you wish to withdraw this lot from the auction catalog?
               </p>
             </div>
           </div>
-          <p className="text-sm text-gray-600">
-            Cancelling an auction removes it from public listings. This action
-            cannot be undone.
+          <p className="text-xs text-zinc-600 leading-relaxed">
+            Cancelling an auction permanently closes participation and removes it from public search. This transaction cannot be reversed.
           </p>
           {cancelError && (
-            <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-2.5">
+            <div className="text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-lg p-3 font-medium">
               {cancelError}
             </div>
           )}
-          <div className="flex items-center justify-end gap-3">
+          <div className="flex items-center justify-end gap-3 pt-2">
             <Button
               variant="secondary"
               onClick={() => setCancelTarget(null)}
@@ -375,7 +358,7 @@ export default function MyAuctionsContent({ auctions, initialCreated, initialUpd
               Keep Auction
             </Button>
             <Button variant="danger" onClick={handleCancel} disabled={cancelling}>
-              {cancelling ? "Cancelling..." : "Cancel Auction"}
+              {cancelling ? "Revoking..." : "Confirm Cancellation"}
             </Button>
           </div>
         </div>

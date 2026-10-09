@@ -8,10 +8,11 @@ import Select from "@/components/ui/Select";
 import Button from "@/components/ui/Button";
 import Modal from "@/components/ui/Modal";
 import EmptyState from "@/components/ui/EmptyState";
+import ImageWithFallback from "@/components/ui/ImageWithFallback";
 import { ToastProvider, useToast } from "@/components/ui/Toast";
 import { adminCancelAuctionAction } from "@/lib/admin-actions";
 import { formatPrice, formatDateTime } from "@/lib/utils";
-import { Eye, Ban, PackageX, Package } from "lucide-react";
+import { Eye, Ban, PackageX, Package, ShieldAlert } from "lucide-react";
 
 const statusOptions = [
   { value: "all", label: "All Statuses" },
@@ -78,20 +79,34 @@ function AdminAuctionsContentInner({ auctions, initialSearch, initialStatus }) {
   const hasFilters = Boolean(search.trim()) || status !== "all";
 
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Manage Auctions</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Search, review and moderate all auctions
-        </p>
+    <div className="space-y-8">
+      {/* Editorial Header */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-6 border-b hairline-border">
+        <div>
+          <span className="font-mono text-xs uppercase tracking-widest text-[#7c3aed] block mb-2">
+            Catalog Governance
+          </span>
+          <h1 className="editorial-display text-3xl sm:text-4xl text-[#0d0d0d]">
+            Auctions Register
+          </h1>
+          <p className="editorial-sub text-sm sm:text-base text-[#666666] mt-2 max-w-xl">
+            Audit live, upcoming, and archival listings across the TORI marketplace exchange.
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="px-3.5 py-1.5 rounded-full border hairline-border bg-white text-xs font-mono text-[#0d0d0d]">
+            <span className="font-semibold text-[#7c3aed]">{auctions.length}</span> Lots Found
+          </div>
+        </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row lg:items-center gap-4 mb-4">
+      {/* Filter Bar */}
+      <div className="bg-white p-4 sm:p-5 rounded-2xl border hairline-border flex flex-col lg:flex-row lg:items-center gap-4">
         <SearchBar
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           onKeyDown={handleSearchKey}
-          placeholder="Search by title..."
+          placeholder="Filter by title or catalog ID..."
           className="lg:max-w-md flex-1"
         />
         <Select
@@ -102,143 +117,193 @@ function AdminAuctionsContentInner({ auctions, initialSearch, initialStatus }) {
           className="lg:w-56"
         />
         {hasFilters && (
-          <Button variant="outline" onClick={handleClear}>
+          <Button variant="outline" size="sm" onClick={handleClear} className="self-start lg:self-auto">
             Clear Filters
           </Button>
         )}
-        <span className="text-sm text-gray-500 ml-auto">
-          {auctions.length} auction{auctions.length === 1 ? "" : "s"}
-        </span>
       </div>
 
+      {/* Table / Empty State */}
       {auctions.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200">
+        <div className="bg-white rounded-2xl border hairline-border p-8">
           <EmptyState
             icon={Package}
-            title="No auctions found"
-            description="Try adjusting your search or status filter."
+            title="No auction listings located"
+            description="Adjust your search criteria or review filters to locate existing catalogue lots."
+            actionLabel={hasFilters ? "Clear Filters" : undefined}
+            onAction={hasFilters ? handleClear : undefined}
           />
         </div>
       ) : (
         <>
-          <div className="hidden md:block bg-white rounded-xl border border-gray-200 overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Seller</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Current Bid</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bids</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">End Date</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-100">
-                {auctions.map((auction) => (
-                  <tr key={auction.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-3">
-                        <div className="h-9 w-9 rounded-lg bg-gray-100 text-gray-500 flex items-center justify-center shrink-0">
-                          <PackageIconImage image={auction.image} title={auction.title} />
-                        </div>
-                        <div>
-                          <span className="text-sm font-medium text-gray-900 block">{auction.title}</span>
-                          <span className="text-xs text-gray-500">{auction.category}</span>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-700 whitespace-nowrap">
-                      {auction.seller?.name || "—"}
-                    </td>
-                    <td className="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
-                      {formatPrice(auction.currentPrice)}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-700 whitespace-nowrap">
-                      {auction.numberOfBids}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <StatusBadge status={auction.status} />
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-700 whitespace-nowrap">
-                      {formatDateTime(auction.endTime)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center justify-end gap-1">
-                        <button
-                          onClick={() => setViewAuction(auction)}
-                          className="p-2 rounded-lg text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
-                          aria-label={`View ${auction.title}`}
-                          title="View details"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </button>
-                        {isCancellable(auction) ? (
-                          <button
-                            onClick={() => setCancelTarget(auction)}
-                            className="p-2 rounded-lg text-gray-500 hover:text-red-600 hover:bg-red-50 transition-colors"
-                            aria-label={`Cancel ${auction.title}`}
-                            title="Cancel auction"
-                          >
-                            <Ban className="h-4 w-4" />
-                          </button>
-                        ) : (
-                          <span
-                            className="p-2 rounded-lg text-gray-300 cursor-not-allowed"
-                            title="Only upcoming, or active auctions without bids, can be cancelled"
-                          >
-                            <Ban className="h-4 w-4" />
-                          </span>
-                        )}
-                      </div>
-                    </td>
+          {/* Desktop Table */}
+          <div className="hidden md:block bg-white rounded-2xl border hairline-border overflow-hidden shadow-xs">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y hairline-border">
+                <thead className="bg-[#f9f9fb]">
+                  <tr>
+                    <th className="px-6 py-4 text-left font-mono text-[11px] font-medium uppercase tracking-wider text-[#666666]">
+                      Lot / Category
+                    </th>
+                    <th className="px-6 py-4 text-left font-mono text-[11px] font-medium uppercase tracking-wider text-[#666666]">
+                      Consignor
+                    </th>
+                    <th className="px-6 py-4 text-left font-mono text-[11px] font-medium uppercase tracking-wider text-[#666666]">
+                      Valuation
+                    </th>
+                    <th className="px-6 py-4 text-left font-mono text-[11px] font-medium uppercase tracking-wider text-[#666666]">
+                      Bids
+                    </th>
+                    <th className="px-6 py-4 text-left font-mono text-[11px] font-medium uppercase tracking-wider text-[#666666]">
+                      Status
+                    </th>
+                    <th className="px-6 py-4 text-left font-mono text-[11px] font-medium uppercase tracking-wider text-[#666666]">
+                      Closing Schedule
+                    </th>
+                    <th className="px-6 py-4 text-right font-mono text-[11px] font-medium uppercase tracking-wider text-[#666666]">
+                      Moderation
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y hairline-border bg-white">
+                  {auctions.map((auction) => (
+                    <tr key={auction.id} className="hover:bg-[#fafafa] transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-3.5">
+                          <div className="h-11 w-11 rounded-lg bg-[#f0f0f3] overflow-hidden shrink-0 border hairline-border relative">
+                            <ImageWithFallback
+                              src={auction.image}
+                              alt={auction.title}
+                              category={auction.category}
+                              fill
+                              sizes="44px"
+                              className="object-cover"
+                            />
+                          </div>
+                          <div className="max-w-[220px]">
+                            <span className="text-sm font-medium text-[#0d0d0d] block truncate">
+                              {auction.title}
+                            </span>
+                            <span className="font-mono text-xs text-[#7c3aed]">
+                              {auction.category}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-[#444444] whitespace-nowrap">
+                        {auction.seller?.name || "—"}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="font-mono text-sm font-semibold text-[#0d0d0d]">
+                          {formatPrice(auction.currentPrice)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="font-mono text-xs px-2.5 py-1 rounded bg-[#f5f5f7] text-[#444444] border hairline-border">
+                          {auction.numberOfBids} bids
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <StatusBadge status={auction.status} />
+                      </td>
+                      <td className="px-6 py-4 text-xs font-mono text-[#666666] whitespace-nowrap">
+                        {formatDateTime(auction.endTime)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => setViewAuction(auction)}
+                            className="p-2 rounded-lg text-[#666666] hover:text-[#7c3aed] hover:bg-[#7c3aed]/5 transition-colors"
+                            aria-label={`View ${auction.title}`}
+                            title="Inspect dossier"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </button>
+                          {isCancellable(auction) ? (
+                            <button
+                              onClick={() => setCancelTarget(auction)}
+                              className="p-2 rounded-lg text-[#666666] hover:text-[#dc2626] hover:bg-rose-50 transition-colors"
+                              aria-label={`Cancel ${auction.title}`}
+                              title="Revoke / Cancel listing"
+                            >
+                              <Ban className="h-4 w-4" />
+                            </button>
+                          ) : (
+                            <span
+                              className="p-2 text-[#cccccc] cursor-not-allowed"
+                              title="Locked: only upcoming or zero-bid auctions can be revoked"
+                            >
+                              <Ban className="h-4 w-4" />
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
 
+          {/* Mobile Cards */}
           <div className="md:hidden space-y-3">
             {auctions.map((auction) => (
               <div
                 key={auction.id}
-                className="bg-white rounded-xl border border-gray-200 p-4"
+                className="bg-white rounded-2xl border hairline-border p-4.5 space-y-4"
               >
-                <div className="flex items-center justify-between mb-3">
+                <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="h-10 w-10 rounded-lg bg-gray-100 text-gray-500 flex items-center justify-center shrink-0">
-                      <PackageIconImage image={auction.image} title={auction.title} />
+                    <div className="h-12 w-12 rounded-lg bg-[#f0f0f3] overflow-hidden shrink-0 border hairline-border relative">
+                      <ImageWithFallback
+                        src={auction.image}
+                        alt={auction.title}
+                        category={auction.category}
+                        fill
+                        sizes="48px"
+                        className="object-cover"
+                      />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold text-gray-900 truncate">{auction.title}</p>
-                      <p className="text-xs text-gray-500">{auction.category} · {auction.seller?.name || "—"}</p>
+                      <p className="text-sm font-medium text-[#0d0d0d] truncate">
+                        {auction.title}
+                      </p>
+                      <p className="text-xs text-[#7c3aed] font-mono">
+                        {auction.category} · {auction.seller?.name || "—"}
+                      </p>
                     </div>
                   </div>
                   <StatusBadge status={auction.status} />
                 </div>
-                <div className="grid grid-cols-3 gap-3 text-sm mb-3">
+
+                <div className="grid grid-cols-3 gap-2 py-3 border-y hairline-border text-center">
                   <div>
-                    <p className="text-xs text-gray-500">Current Bid</p>
-                    <p className="mt-1 text-sm font-medium text-gray-900">{formatPrice(auction.currentPrice)}</p>
+                    <span className="font-mono text-[10px] uppercase text-[#888888] block">Valuation</span>
+                    <span className="font-mono text-xs font-semibold text-[#0d0d0d]">
+                      {formatPrice(auction.currentPrice)}
+                    </span>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Bids</p>
-                    <p className="mt-1 text-sm font-medium text-gray-900">{auction.numberOfBids}</p>
+                    <span className="font-mono text-[10px] uppercase text-[#888888] block">Offers</span>
+                    <span className="font-mono text-xs text-[#444444]">{auction.numberOfBids}</span>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Ends</p>
-                    <p className="mt-1 text-sm font-medium text-gray-900">{formatDateTime(auction.endTime)}</p>
+                    <span className="font-mono text-[10px] uppercase text-[#888888] block">End</span>
+                    <span className="font-mono text-[11px] text-[#666666] truncate block">
+                      {new Date(auction.endTime).toLocaleDateString("en-IN", { month: "short", day: "numeric" })}
+                    </span>
                   </div>
                 </div>
-                <div className="flex items-center justify-end gap-2 pt-3 border-t border-gray-100">
+
+                <div className="flex items-center justify-end gap-2 pt-1">
                   <Button variant="outline" size="sm" onClick={() => setViewAuction(auction)}>
-                    <Eye className="h-4 w-4" />
-                    View
+                    <Eye className="h-3.5 w-3.5 mr-1" />
+                    Details
                   </Button>
                   {isCancellable(auction) && (
                     <Button variant="danger" size="sm" onClick={() => setCancelTarget(auction)}>
-                      <Ban className="h-4 w-4" />
-                      Cancel
+                      <Ban className="h-3.5 w-3.5 mr-1" />
+                      Revoke
                     </Button>
                   )}
                 </div>
@@ -248,59 +313,86 @@ function AdminAuctionsContentInner({ auctions, initialSearch, initialStatus }) {
         </>
       )}
 
+      {/* Details Modal */}
       <Modal
         isOpen={!!viewAuction}
         onClose={() => setViewAuction(null)}
-        title="Auction Details"
+        title="Lot Dossier"
         size="lg"
       >
         {viewAuction && (
-          <div>
-            <div className="mb-5">
-              <h3 className="text-lg font-semibold text-gray-900">{viewAuction.title}</h3>
-              <p className="text-sm text-gray-500 mt-1">
-                {viewAuction.category} · sold by {viewAuction.seller?.name || "Unknown"}
-              </p>
+          <div className="space-y-6">
+            <div className="flex items-start gap-4 pb-4 border-b hairline-border">
+              <div className="w-16 h-16 rounded-xl bg-[#f0f0f3] overflow-hidden shrink-0 border hairline-border relative">
+                <ImageWithFallback
+                  src={viewAuction.image}
+                  alt={viewAuction.title}
+                  category={viewAuction.category}
+                  fill
+                  sizes="64px"
+                  className="object-cover"
+                />
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="font-mono text-xs text-[#7c3aed] uppercase tracking-wider block">
+                  {viewAuction.category}
+                </span>
+                <h3 className="editorial-display text-xl text-[#0d0d0d] truncate">
+                  {viewAuction.title}
+                </h3>
+                <p className="text-xs text-[#666666] mt-0.5">
+                  Consigned by <span className="text-[#0d0d0d] font-medium">{viewAuction.seller?.name || "Unknown"}</span>
+                </p>
+              </div>
             </div>
 
-            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <dl className="grid grid-cols-2 sm:grid-cols-3 gap-4 bg-[#fafafc] p-4.5 rounded-xl border hairline-border">
               <div>
-                <dt className="text-xs font-medium text-gray-500 uppercase">Status</dt>
+                <dt className="font-mono text-[10px] uppercase text-[#888888]">Status</dt>
                 <dd className="mt-1"><StatusBadge status={viewAuction.status} /></dd>
               </div>
               <div>
-                <dt className="text-xs font-medium text-gray-500 uppercase">Current Bid</dt>
-                <dd className="mt-1 text-sm text-gray-900">{formatPrice(viewAuction.currentPrice)}</dd>
+                <dt className="font-mono text-[10px] uppercase text-[#888888]">Current Bid</dt>
+                <dd className="mt-1 font-mono text-sm font-semibold text-[#0d0d0d]">
+                  {formatPrice(viewAuction.currentPrice)}
+                </dd>
               </div>
               <div>
-                <dt className="text-xs font-medium text-gray-500 uppercase">Starting Price</dt>
-                <dd className="mt-1 text-sm text-gray-900">{formatPrice(viewAuction.startingPrice)}</dd>
+                <dt className="font-mono text-[10px] uppercase text-[#888888]">Starting Price</dt>
+                <dd className="mt-1 font-mono text-sm text-[#444444]">
+                  {formatPrice(viewAuction.startingPrice)}
+                </dd>
               </div>
               <div>
-                <dt className="text-xs font-medium text-gray-500 uppercase">Number of Bids</dt>
-                <dd className="mt-1 text-sm text-gray-900">{viewAuction.numberOfBids}</dd>
+                <dt className="font-mono text-[10px] uppercase text-[#888888]">Recorded Bids</dt>
+                <dd className="mt-1 font-mono text-sm text-[#444444]">{viewAuction.numberOfBids}</dd>
               </div>
               <div>
-                <dt className="text-xs font-medium text-gray-500 uppercase">Start Time</dt>
-                <dd className="mt-1 text-sm text-gray-900">{formatDateTime(viewAuction.startTime)}</dd>
+                <dt className="font-mono text-[10px] uppercase text-[#888888]">Opening</dt>
+                <dd className="mt-1 font-mono text-xs text-[#666666]">
+                  {formatDateTime(viewAuction.startTime)}
+                </dd>
               </div>
               <div>
-                <dt className="text-xs font-medium text-gray-500 uppercase">End Time</dt>
-                <dd className="mt-1 text-sm text-gray-900">{formatDateTime(viewAuction.endTime)}</dd>
+                <dt className="font-mono text-[10px] uppercase text-[#888888]">Closing</dt>
+                <dd className="mt-1 font-mono text-xs text-[#666666]">
+                  {formatDateTime(viewAuction.endTime)}
+                </dd>
               </div>
               {viewAuction.winner && (
-                <div className="sm:col-span-2">
-                  <dt className="text-xs font-medium text-gray-500 uppercase">Winner</dt>
-                  <dd className="mt-1 text-sm text-gray-900">
-                    {viewAuction.winner.name} · {formatPrice(viewAuction.winner.amount)}
+                <div className="col-span-full pt-3 border-t hairline-border">
+                  <dt className="font-mono text-[10px] uppercase text-[#888888]">Winning Bidder</dt>
+                  <dd className="mt-1 text-sm font-medium text-[#0d0d0d] flex items-center justify-between">
+                    <span>{viewAuction.winner.name}</span>
+                    <span className="font-mono text-[#7c3aed]">{formatPrice(viewAuction.winner.amount)}</span>
                   </dd>
                 </div>
               )}
             </dl>
 
-            <div className="flex justify-end gap-3 pt-5 mt-5 border-t border-gray-100">
+            <div className="flex justify-end gap-3 pt-2">
               <Button variant="outline" onClick={() => setViewAuction(null)}>
-                Close
+                Dismiss
               </Button>
               {isCancellable(viewAuction) && (
                 <Button
@@ -310,8 +402,8 @@ function AdminAuctionsContentInner({ auctions, initialSearch, initialStatus }) {
                     setViewAuction(null);
                   }}
                 >
-                  <Ban className="h-4 w-4" />
-                  Cancel Auction
+                  <Ban className="h-4 w-4 mr-1.5" />
+                  Cancel Listing
                 </Button>
               )}
             </div>
@@ -319,28 +411,27 @@ function AdminAuctionsContentInner({ auctions, initialSearch, initialStatus }) {
         )}
       </Modal>
 
+      {/* Cancel Confirmation Modal */}
       <Modal
         isOpen={!!cancelTarget}
         onClose={() => !cancelling && setCancelTarget(null)}
-        title="Cancel Auction"
+        title="Revoke Auction Lot"
         size="sm"
       >
         {cancelTarget && (
-          <div>
-            <p className="text-sm text-gray-600 flex items-start gap-2 mb-4">
-              <PackageX className="h-5 w-5 text-red-500 shrink-0" />
-              <span>
-                Are you sure you want to cancel{" "}
-                <span className="font-semibold text-gray-900">“{cancelTarget.title}”</span>?
-                This cannot be undone.
-              </span>
-            </p>
+          <div className="space-y-5">
+            <div className="flex items-start gap-3 p-3.5 bg-rose-50 rounded-xl border border-rose-200">
+              <ShieldAlert className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
+              <div className="text-xs text-rose-900 leading-relaxed">
+                Confirm cancellation of <strong className="font-semibold text-rose-950">“{cancelTarget.title}”</strong>. This action terminates the bidding lifecycle and marks the listing as cancelled.
+              </div>
+            </div>
             <div className="flex justify-end gap-3">
               <Button variant="outline" onClick={() => setCancelTarget(null)} disabled={cancelling}>
-                Keep Auction
+                Retain
               </Button>
               <Button variant="danger" onClick={runCancel} disabled={cancelling}>
-                {cancelling ? "Cancelling..." : "Cancel Auction"}
+                {cancelling ? "Revoking..." : "Confirm Cancellation"}
               </Button>
             </div>
           </div>
@@ -348,12 +439,6 @@ function AdminAuctionsContentInner({ auctions, initialSearch, initialStatus }) {
       </Modal>
     </div>
   );
-}
-
-function PackageIconImage({ image, title }) {
-  if (!image) return <Package className="h-4 w-4" />;
-  // eslint-disable-next-line @next/next/no-img-element
-  return <img src={image} alt={title} className="h-9 w-9 rounded-lg object-cover" />;
 }
 
 export default function AdminAuctionsContent({ auctions, initialSearch, initialStatus }) {

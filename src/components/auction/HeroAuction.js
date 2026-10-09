@@ -5,57 +5,87 @@ import CountdownTimer from "@/components/ui/CountdownTimer";
 import ImageWithFallback from "@/components/ui/ImageWithFallback";
 import StatusBadge from "@/components/ui/StatusBadge";
 import { formatPrice } from "@/lib/utils";
-import { Gavel, ArrowRight, Users } from "lucide-react";
+import { ArrowUpRight, Users, ShieldCheck } from "lucide-react";
 
 export default function HeroAuction({ auction }) {
+  const currentPrice = auction.currentBid || auction.currentPrice || auction.startingPrice;
+  const bids = auction.bidCount ?? auction.numberOfBids ?? 0;
+
   return (
-    <Link href={`/auctions/${auction.id}`} className="block group">
-      <div className="bg-white rounded-2xl shadow-2xl overflow-hidden w-[360px] transform transition group-hover:shadow-3xl">
-        <div className="relative h-52 bg-gray-50">
+    <Link href={`/auctions/${auction.id}`} className="block group w-full">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-2xl transition-all duration-300 hover:border-zinc-700 hover:shadow-indigo-500/10 hover:shadow-2xl text-white">
+        {/* Visual Showcase */}
+        <div className="relative h-60 sm:h-64 bg-zinc-950 overflow-hidden">
           <ImageWithFallback
             src={auction.image}
             alt={auction.title}
             category={auction.category}
-            className="h-full"
-            imgClassName="group-hover:scale-105 transition-transform duration-500"
+            tone="dark"
+            priority={true}
+            className="h-full w-full"
+            imgClassName="group-hover:scale-105 transition-transform duration-700 ease-out"
           />
-          <div className="absolute top-3 left-3">
-            <StatusBadge status={auction.status} />
+
+          <div className="absolute top-3.5 left-3.5 z-10">
+            <StatusBadge status={auction.status} size="sm" />
+          </div>
+
+          <div className="absolute top-3.5 right-3.5 z-10 bg-black/60 backdrop-blur-md border border-white/10 text-white text-[11px] font-mono px-2.5 py-1 rounded-full flex items-center gap-1.5">
+            <Users className="h-3 w-3 text-indigo-400" />
+            <span>{bids} Bids</span>
+          </div>
+
+          <div className="absolute bottom-3 left-3 z-10 flex items-center gap-1.5 bg-black/60 backdrop-blur-md border border-white/10 px-2.5 py-1 rounded-full text-[10px] uppercase font-mono tracking-wider text-zinc-300">
+            <ShieldCheck className="h-3 w-3 text-emerald-400" />
+            <span>Verified Lot #{String(auction.id).slice(-4).padStart(4, "0")}</span>
           </div>
         </div>
-        <div className="p-4">
-          <p className="text-[10px] text-indigo-600 font-semibold uppercase tracking-wider mb-0.5">
-            {auction.category}
-          </p>
-          <h3 className="text-base font-bold text-gray-900 line-clamp-1 mb-3">
-            {auction.title}
-          </h3>
-          <div className="flex items-center justify-between mb-3">
+
+        {/* Content Details */}
+        <div className="p-5 sm:p-6 space-y-4">
+          <div>
+            <div className="flex items-center justify-between text-xs text-zinc-400 mb-1">
+              <span className="text-[10px] uppercase tracking-widest font-mono text-indigo-400 font-semibold">
+                {auction.category}
+              </span>
+              <span>Seller: {auction.seller}</span>
+            </div>
+            <h3 className="text-base sm:text-lg font-bold text-white tracking-tight line-clamp-1 group-hover:text-indigo-400 transition-colors">
+              {auction.title}
+            </h3>
+          </div>
+
+          <div className="bg-zinc-950/60 border border-zinc-800/80 rounded-xl p-3.5 flex items-center justify-between">
             <div>
-              <p className="text-[9px] text-gray-400 uppercase tracking-wider leading-none mb-0.5">
-                Current Bid
+              <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-mono">
+                Current Valuation
               </p>
-              <p className="text-xl font-bold text-indigo-600 leading-none">
-                {formatPrice(auction.currentBid || auction.startingPrice)}
+              <p className="text-xl sm:text-2xl font-bold font-mono tracking-tight text-white">
+                {formatPrice(currentPrice)}
               </p>
             </div>
-            <div className="text-right space-y-0.5">
-              <div className="flex items-center gap-1 text-gray-400 justify-end">
-                <Users className="h-3 w-3" />
-                <span className="text-[11px] font-medium">{auction.bidCount} bids</span>
-              </div>
+
+            <div className="text-right">
+              <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-mono mb-0.5">
+                Time Remaining
+              </p>
               <CountdownTimer
                 startTime={auction.startTime}
                 endTime={auction.endTime}
                 status={auction.status}
-                className="text-xs"
+                className="text-white text-xs justify-end"
               />
             </div>
           </div>
-          <div className="flex items-center gap-1.5 text-indigo-600 text-sm font-medium group-hover:gap-2 transition-all">
-            <Gavel className="h-3.5 w-3.5" />
-            <span>Place a bid</span>
-            <ArrowRight className="h-3.5 w-3.5" />
+
+          <div className="flex items-center justify-between pt-1">
+            <span className="text-xs text-zinc-400 font-medium">
+              Start: {formatPrice(auction.startingPrice)}
+            </span>
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-white group-hover:text-indigo-400 transition-colors">
+              <span>Enter Bidding Room</span>
+              <ArrowUpRight className="h-4 w-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+            </span>
           </div>
         </div>
       </div>

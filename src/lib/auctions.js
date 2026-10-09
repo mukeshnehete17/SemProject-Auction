@@ -150,6 +150,9 @@ export async function getAuctions(filters = {}) {
       _count: { select: { bids: true } },
     },
     orderBy: VALID_SORTS.has(sort) ? getAuctionSortOrder(sort) : [{ endTime: "asc" }],
+    // Safe default limit: the catalogue UI has no pagination, so cap the
+    // result set instead of issuing an unbounded query.
+    take: 100,
   });
   return rows.map(toAuctionShape);
 }

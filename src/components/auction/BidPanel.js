@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Gavel, AlertCircle } from "lucide-react";
+import { Gavel, AlertCircle, ArrowUpRight, ShieldCheck } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 
 export default function BidPanel({ auction, currentUser, onBid }) {
@@ -31,70 +31,100 @@ export default function BidPanel({ auction, currentUser, onBid }) {
     setSubmitting(false);
   };
 
-  return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
-      <div>
-        <p className="text-xs text-gray-500 mb-1">Current Bid</p>
-        <p className="text-3xl font-bold text-indigo-600">
-          {formatPrice(currentBid)}
-        </p>
-      </div>
+  const handleQuickAdd = (increment) => {
+    setBidAmount((prev) => Math.max(minBid, (Number(prev) || minBid) + increment));
+  };
 
-      <div className="bg-gray-50 rounded-lg p-4 grid grid-cols-2 gap-4">
+  return (
+    <div className="bg-white border border-zinc-200/90 rounded-2xl p-6 sm:p-7 shadow-xs space-y-6">
+      {/* Top Valuation Bar */}
+      <div className="flex items-end justify-between border-b border-zinc-100 pb-5">
         <div>
-          <p className="text-xs text-gray-500">Min. Increment</p>
-          <p className="text-sm font-semibold text-gray-900">
-            {formatPrice(bidIncrement)}
+          <span className="text-[10px] uppercase tracking-widest text-zinc-400 font-mono font-semibold">
+            Current High Bid
+          </span>
+          <p className="text-3xl sm:text-4xl font-extrabold text-zinc-950 font-mono tracking-tight mt-0.5">
+            {formatPrice(currentBid)}
           </p>
         </div>
-        <div>
-          <p className="text-xs text-gray-500">Minimum Next Bid</p>
-          <p className="text-sm font-semibold text-gray-900">
+        <div className="text-right">
+          <span className="text-[10px] uppercase tracking-widest text-zinc-400 font-mono font-semibold">
+            Minimum Next
+          </span>
+          <p className="text-sm sm:text-base font-bold text-indigo-600 font-mono tracking-tight mt-0.5">
             {formatPrice(minBid)}
           </p>
         </div>
       </div>
 
+      {/* Increments specs */}
+      <div className="grid grid-cols-2 gap-3 bg-zinc-50 border border-zinc-200/60 rounded-xl p-3.5 text-xs">
+        <div>
+          <span className="text-[10px] uppercase font-mono tracking-wider text-zinc-400">
+            Min. Increment
+          </span>
+          <p className="font-mono font-bold text-zinc-800 mt-0.5">
+            {formatPrice(bidIncrement)}
+          </p>
+        </div>
+        <div>
+          <span className="text-[10px] uppercase font-mono tracking-wider text-zinc-400">
+            Bid Protection
+          </span>
+          <p className="font-sans font-medium text-emerald-600 mt-0.5 flex items-center gap-1">
+            <ShieldCheck className="h-3.5 w-3.5" />
+            Active
+          </p>
+        </div>
+      </div>
+
+      {/* Logged-out state */}
       {isActive && !currentUser && (
-        <div className="text-center py-3 rounded-lg bg-gray-50">
-          <p className="text-sm text-gray-600 mb-2">
-            Sign in to place a bid
+        <div className="text-center py-6 px-4 rounded-xl border border-dashed border-zinc-200 bg-zinc-50/60 space-y-3">
+          <p className="text-xs text-zinc-600 font-medium">
+            Authentication is required to place authenticated bids on this lot.
           </p>
           <Link
             href={`/login?callbackUrl=${encodeURIComponent(
               typeof window !== "undefined" ? window.location.pathname : `/auctions/${auction.id}`
             )}`}
-            className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+            className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-zinc-950 text-white text-xs font-semibold hover:bg-zinc-800 transition-colors"
           >
-            Sign in
+            <span>Sign In to Bid</span>
+            <ArrowUpRight className="h-3.5 w-3.5" />
           </Link>
         </div>
       )}
 
+      {/* Own auction warning */}
       {isActive && currentUser && isOwnAuction && (
-        <div className="text-center py-3 rounded-lg bg-gray-50">
-          <p className="text-sm text-gray-600">
-            You can&apos;t bid on your own auction
-          </p>
+        <div className="text-center py-4 px-4 rounded-xl bg-amber-50 border border-amber-200/60 text-amber-800 text-xs font-medium">
+          You are the seller of this listing. Self-bidding is strictly prohibited.
         </div>
       )}
 
+      {/* Admin warning */}
       {isActive && currentUser && !isOwnAuction && currentUser.role === "ADMIN" && (
-        <div className="text-center py-3 rounded-lg bg-gray-50">
-          <p className="text-sm text-gray-600">
-            Admins cannot place bids
-          </p>
+        <div className="text-center py-4 px-4 rounded-xl bg-zinc-100 border border-zinc-200 text-zinc-700 text-xs font-medium">
+          Administrative accounts cannot participate in competitive bidding.
         </div>
       )}
 
+      {/* Active bidding form */}
       {isActive && currentUser && !isOwnAuction && currentUser.role !== "ADMIN" && (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Your Bid (INR)
-            </label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-[11px] font-semibold uppercase tracking-wider text-zinc-700">
+                Your Maximum Bid (INR)
+              </label>
+              <span className="text-[11px] font-mono text-zinc-400">
+                Min {formatPrice(minBid)}
+              </span>
+            </div>
+
             <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 text-sm">
+              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-zinc-500 font-mono text-base font-semibold">
                 ₹
               </span>
               <input
@@ -103,23 +133,36 @@ export default function BidPanel({ auction, currentUser, onBid }) {
                 onChange={(e) => setBidAmount(Number(e.target.value))}
                 min={minBid}
                 step={bidIncrement}
-                className={`w-full rounded-lg border pl-8 pr-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none transition-colors ${
+                className={`w-full rounded-lg border pl-8 pr-4 py-3 text-base font-mono font-bold text-zinc-900 placeholder-zinc-400 focus:outline-none transition-colors ${
                   formError
-                    ? "border-red-500 focus:ring-2 focus:ring-red-500/20"
-                    : "border-gray-300 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                    ? "border-rose-400 focus:border-rose-600 focus:ring-1 focus:ring-rose-500"
+                    : "border-zinc-300 focus:border-zinc-950 focus:ring-1 focus:ring-zinc-950"
                 }`}
                 placeholder={`Minimum ${formatPrice(minBid)}`}
               />
             </div>
           </div>
 
-          <p className="text-xs text-gray-500">
-            Minimum bid: {formatPrice(minBid)}
-          </p>
+          {/* Preset increment chips */}
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] uppercase font-mono tracking-wider text-zinc-400">
+              Quick:
+            </span>
+            {[bidIncrement, bidIncrement * 2, bidIncrement * 5].map((inc, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => handleQuickAdd(inc)}
+                className="text-[11px] font-mono font-medium px-2.5 py-1 rounded-md bg-zinc-100 hover:bg-zinc-200 text-zinc-700 transition-colors"
+              >
+                +{formatPrice(inc)}
+              </button>
+            ))}
+          </div>
 
           {(formError || bidAmount < minBid) && (
-            <div className="flex items-center gap-2 text-red-600 text-sm">
-              <AlertCircle className="h-4 w-4 flex-shrink-0" />
+            <div className="flex items-center gap-2 text-rose-600 text-xs font-medium bg-rose-50 border border-rose-100 rounded-lg p-2.5">
+              <AlertCircle className="h-4 w-4 shrink-0" />
               <span>{formError || `Bid must be at least ${formatPrice(minBid)}`}</span>
             </div>
           )}
@@ -127,19 +170,17 @@ export default function BidPanel({ auction, currentUser, onBid }) {
           <button
             type="submit"
             disabled={submitting || bidAmount < minBid}
-            className="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white text-sm font-medium py-3 rounded-lg hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+            className="w-full flex items-center justify-center gap-2 bg-zinc-950 text-white text-xs sm:text-sm font-semibold py-3.5 rounded-lg hover:bg-zinc-800 active:bg-zinc-900 disabled:bg-zinc-200 disabled:text-zinc-400 disabled:cursor-not-allowed transition-all duration-200 shadow-sm cursor-pointer"
           >
             <Gavel className="h-4 w-4" />
-            {submitting ? "Placing bid..." : "Place Bid"}
+            <span>{submitting ? "Transacting Bid..." : `Place Official Bid (${formatPrice(bidAmount)})`}</span>
           </button>
         </form>
       )}
 
       {!isActive && (
-        <div className="text-center py-4">
-          <p className="text-sm text-gray-500 font-medium">
-            Bidding is not available
-          </p>
+        <div className="text-center py-5 rounded-xl bg-zinc-50 border border-zinc-200 text-zinc-500 text-xs font-medium">
+          Bidding on this lot is currently closed.
         </div>
       )}
     </div>
