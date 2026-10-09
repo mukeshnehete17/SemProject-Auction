@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -44,6 +44,15 @@ export default function AuctionDetailContent({
   const [watchToggling, setWatchToggling] = useState(false);
 
   const canBid = auction.status === "active" || auction.status === "ending_soon";
+
+  // Live polling for cross-user bidding updates when auction is active
+  useEffect(() => {
+    if (!canBid) return;
+    const interval = setInterval(() => {
+      router.refresh();
+    }, 8000);
+    return () => clearInterval(interval);
+  }, [canBid, router]);
 
   const handleBid = async (amount) => {
     const result = await placeBidAction(auction.id, amount);

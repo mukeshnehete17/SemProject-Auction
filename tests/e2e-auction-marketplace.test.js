@@ -47,7 +47,11 @@ beforeAll(async () => {
   const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
   const setup = new Database(dbFile);
   try {
-    for (const m of ["20260910103445_init", "20260910114613_phase5_watchlist_notifications"]) {
+    for (const m of [
+      "20260910103445_init",
+      "20260910114613_phase5_watchlist_notifications",
+      "20261010_password_reset_token",
+    ]) {
       setup.exec(
         readFileSync(join(repoRoot, "prisma", "migrations", m, "migration.sql"), "utf8")
       );

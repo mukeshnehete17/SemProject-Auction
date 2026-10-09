@@ -145,9 +145,12 @@ function LoginForm() {
                   />
                   <span className="text-zinc-600">Remember session</span>
                 </label>
-                <span className="text-zinc-400 font-mono text-[11px]">
-                  Encrypted SSL
-                </span>
+                <Link
+                  href="/forgot-password"
+                  className="font-semibold text-indigo-600 hover:text-indigo-800 transition-colors"
+                >
+                  Forgot password?
+                </Link>
               </div>
 
               <div className="pt-2">
@@ -173,21 +176,23 @@ function LoginForm() {
               </Link>
             </div>
 
-            {/* Demo Accounts Callout */}
-            <div className="bg-zinc-50 border border-zinc-200/80 rounded-xl p-4 text-[11px] font-mono text-zinc-600 space-y-1">
-              <p className="font-bold uppercase tracking-wider text-zinc-500 text-[10px]">
-                Demo Credentials:
-              </p>
-              <p className="truncate">
-                Buyer: <span className="font-semibold text-zinc-900">buyer@bidzone.local</span>
-              </p>
-              <p className="truncate">
-                Seller: <span className="font-semibold text-zinc-900">seller@bidzone.local</span>
-              </p>
-              <p>
-                Password: <span className="font-semibold text-zinc-900">BidZone@123</span>
-              </p>
-            </div>
+            {/* Development-Only Demo Accounts Callout */}
+            {process.env.NODE_ENV !== "production" && (
+              <div className="bg-zinc-50 border border-zinc-200/80 rounded-xl p-4 text-[11px] font-mono text-zinc-600 space-y-1">
+                <p className="font-bold uppercase tracking-wider text-zinc-500 text-[10px]">
+                  Development Demo Credentials:
+                </p>
+                <p className="truncate">
+                  Buyer: <span className="font-semibold text-zinc-900">buyer@bidzone.local</span>
+                </p>
+                <p className="truncate">
+                  Seller: <span className="font-semibold text-zinc-900">seller@bidzone.local</span>
+                </p>
+                <p>
+                  Password: <span className="font-semibold text-zinc-900">BidZone@123</span>
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>

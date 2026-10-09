@@ -35,7 +35,8 @@ async function getFeaturedAuctions() {
       startTime: a.startTime.toISOString(),
       endTime: a.endTime.toISOString(),
     }));
-  } catch {
+  } catch (err) {
+    console.error("[HomePage] Error loading featured auctions:", err);
     return [];
   }
 }
@@ -65,7 +66,8 @@ async function getHeroAuction() {
       startTime: auction.startTime.toISOString(),
       endTime: auction.endTime.toISOString(),
     };
-  } catch {
+  } catch (err) {
+    console.error("[HomePage] Error loading hero auction:", err);
     return null;
   }
 }
@@ -96,7 +98,8 @@ async function getCategoryCounts() {
       image: `/images/categories/${c.slug}.jpg`,
       count: c._count.auctions,
     }));
-  } catch {
+  } catch (err) {
+    console.error("[HomePage] Error loading category counts:", err);
     return [];
   }
 }
@@ -110,7 +113,8 @@ async function getStats() {
       prisma.auction.count({ where: { status: "ENDED" } }),
     ]);
     return { userCount, auctionCount, bidCount, endedCount };
-  } catch {
+  } catch (err) {
+    console.error("[HomePage] Error loading platform stats:", err);
     return { userCount: 0, auctionCount: 0, bidCount: 0, endedCount: 0 };
   }
 }
