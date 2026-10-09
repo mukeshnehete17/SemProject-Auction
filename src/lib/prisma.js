@@ -38,18 +38,20 @@ function getSqliteSource(url) {
 
 function ensureWritableDb(url) {
   const source = getSqliteSource(url);
+  const dbFileName = path.basename(source) || "dev.db";
+  // Statically scoped to the "prisma" directory to prevent Turbopack from tracing the whole project root
   const absolute = path.isAbsolute(source)
     ? source
-    : path.join(/*turbopackIgnore: true*/ process.cwd(), source);
+    : path.join(process.cwd(), "prisma", dbFileName);
 
   const runningOnServerless =
     process.env.VERCEL === "1" || Boolean(process.env.NOW_REGION);
 
-  if (!runningOnServerless) return source;
+  if (!runningOnServerless) return absolute;
 
   const tmpDir = path.join("/tmp", "tori-db");
   mkdirSync(tmpDir, { recursive: true });
-  const target = path.join(tmpDir, path.basename(absolute));
+  const target = path.join(tmpDir, dbFileName);
   if (!existsSync(target) && existsSync(absolute)) {
     copyFileSync(absolute, target);
   }
@@ -57,11 +59,17 @@ function ensureWritableDb(url) {
 }
 
 function createPostgresPool(url) {
-  // `pg` honours `sslmode` from the connection string — Supabase URLs
-  // must carry `sslmode=require`. Pool is deliberately small: serverless
-  // instances each hold their own pool against the shared PgBouncer.
+  // Supabase PgBouncer and direct PostgreSQL endpoints require SSL.
+  // In serverless environments (Vercel Lambdas), configuring ssl with
+  // rejectUnauthorized: false prevents TLS handshake and cert validation failures.
+  const isRemote =
+    /supabase\.com|pooler|\.aws\.|\.render\.com|\.neon\.tech|sslmode=/i.test(url) ||
+    process.env.NODE_ENV === "production" ||
+    process.env.VERCEL === "1";
+
   return new Pool({
     connectionString: url,
+    ssl: isRemote ? { rejectUnauthorized: false } : undefined,
     max: Number.parseInt(process.env.PG_POOL_MAX || "5", 10) || 5,
     idleTimeoutMillis: 30_000,
     connectionTimeoutMillis: 10_000,
