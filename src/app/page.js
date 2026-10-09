@@ -75,18 +75,25 @@ const iconMap = {
   Computers: "Laptop",
   Cameras: "Camera",
   Gaming: "Gamepad2",
-  Fashion: "Shirt",
+  Watches: "Watch",
+  Sneakers: "Footprints",
   Collectibles: "Gem",
+  "Art & Design": "Palette",
+  Fashion: "Shirt",
 };
 
 async function getCategoryCounts() {
   try {
     const counts = await prisma.category.findMany({
+      where: { slug: { not: "fashion" } },
       select: { name: true, slug: true, _count: { select: { auctions: true } } },
+      orderBy: { name: "asc" },
     });
     return counts.map((c) => ({
       name: c.name,
+      slug: c.slug,
       icon: iconMap[c.name] || "Smartphone",
+      image: `/images/categories/${c.slug}.jpg`,
       count: c._count.auctions,
     }));
   } catch {

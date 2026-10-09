@@ -16,10 +16,13 @@ function parseNonNeg(value) {
 export default async function AuctionsPage({ searchParams }) {
   const sp = await searchParams;
   const categories = await getCategories();
-  const categorySlugs = new Set(categories.map((c) => c.slug));
-
-  const rawCategory = typeof sp?.category === "string" ? sp.category : "";
-  const category = categorySlugs.has(rawCategory) ? rawCategory : "all";
+  const rawCategory = typeof sp?.category === "string" ? sp.category.trim() : "";
+  const matchedCategory = categories.find(
+    (c) =>
+      c.slug.toLowerCase() === rawCategory.toLowerCase() ||
+      c.name.toLowerCase() === rawCategory.toLowerCase()
+  );
+  const category = matchedCategory ? matchedCategory.slug : "all";
 
   const filters = {
     search: typeof sp?.search === "string" ? sp.search.trim().slice(0, 100) : "",

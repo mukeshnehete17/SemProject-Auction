@@ -11,7 +11,7 @@
     "db:seed": "node prisma/seed.js",
     "db:studio": "prisma studio",
     "db:transfer": "node scripts/migrate-sqlite-to-postgres.js",
-    "test": "vitest run"
+    "test": "prisma generate --schema=prisma/schema.prisma && vitest run"
   },
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.10.0",

@@ -10,6 +10,9 @@ import {
   Shirt,
   Gem,
   Monitor,
+  Watch,
+  Footprints,
+  Palette,
 } from "lucide-react";
 
 const categoryConfig = {
@@ -17,6 +20,9 @@ const categoryConfig = {
   Computers: { Icon: Laptop, label: "Computing & Displays", bg: "bg-zinc-100", darkBg: "bg-zinc-900", color: "text-zinc-500", darkColor: "text-indigo-400" },
   Cameras: { Icon: Camera, label: "Optics & Photography", bg: "bg-zinc-100", darkBg: "bg-zinc-900", color: "text-zinc-500", darkColor: "text-indigo-400" },
   Gaming: { Icon: Gamepad2, label: "Gaming & Consoles", bg: "bg-zinc-100", darkBg: "bg-zinc-900", color: "text-zinc-500", darkColor: "text-indigo-400" },
+  Watches: { Icon: Watch, label: "Luxury Horology", bg: "bg-zinc-100", darkBg: "bg-zinc-900", color: "text-zinc-500", darkColor: "text-indigo-400" },
+  Sneakers: { Icon: Footprints, label: "Collectible Footwear", bg: "bg-zinc-100", darkBg: "bg-zinc-900", color: "text-zinc-500", darkColor: "text-indigo-400" },
+  "Art & Design": { Icon: Palette, label: "Art & Studio Design", bg: "bg-zinc-100", darkBg: "bg-zinc-900", color: "text-zinc-500", darkColor: "text-indigo-400" },
   Fashion: { Icon: Shirt, label: "Apparel & Horology", bg: "bg-zinc-100", darkBg: "bg-zinc-900", color: "text-zinc-500", darkColor: "text-indigo-400" },
   Collectibles: { Icon: Gem, label: "Certified Collectibles", bg: "bg-zinc-100", darkBg: "bg-zinc-900", color: "text-zinc-500", darkColor: "text-indigo-400" },
 };

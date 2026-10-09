@@ -1,5 +1,17 @@
 import Link from "next/link";
-import { Smartphone, Laptop, Camera, Gamepad2, Shirt, Gem, Package } from "lucide-react";
+import Image from "next/image";
+import {
+  Smartphone,
+  Laptop,
+  Camera,
+  Gamepad2,
+  Shirt,
+  Gem,
+  Package,
+  Watch,
+  Footprints,
+  Palette,
+} from "lucide-react";
 
 const iconMap = {
   Smartphone,
@@ -8,26 +20,49 @@ const iconMap = {
   Gamepad2,
   Shirt,
   Gem,
+  Watch,
+  Footprints,
+  Palette,
 };
 
 export default function CategoryCard({ category }) {
-  const { name, icon, count } = category;
+  const { name, slug, icon, count, image } = category;
   const IconComponent = iconMap[icon] || Package;
 
   return (
     <Link
-      href={`/auctions?category=${encodeURIComponent(name)}`}
-      className="block group"
+      href={`/auctions?category=${encodeURIComponent(slug || name)}`}
+      className="group block relative rounded-2xl overflow-hidden border border-zinc-800/80 bg-zinc-900/60 transition-all duration-500 hover:border-violet-500/50 hover:shadow-xl hover:shadow-violet-950/30 hover:-translate-y-1.5"
     >
-      <div className="bg-white rounded-xl border border-zinc-200/90 p-5 text-center transition-all duration-300 hover:border-zinc-900 hover:shadow-lg hover:-translate-y-1">
-        <div className="w-12 h-12 rounded-xl bg-zinc-50 border border-zinc-100 flex items-center justify-center mx-auto mb-3.5 group-hover:bg-zinc-950 group-hover:text-white transition-all duration-300">
-          <IconComponent className="h-5 w-5 text-zinc-700 group-hover:text-white transition-colors" />
+      {/* Background Image Visual with Dark Gradient Overlay */}
+      <div className="relative h-28 sm:h-32 w-full overflow-hidden bg-zinc-950">
+        {image ? (
+          <Image
+            src={image}
+            alt={name}
+            fill
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 12vw"
+            className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-110 opacity-40 group-hover:opacity-60"
+          />
+        ) : null}
+        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/70 to-transparent" />
+
+        {/* Icon Floating Badge */}
+        <div className="absolute top-3 left-3 w-8 h-8 rounded-lg bg-zinc-900/90 backdrop-blur-md border border-zinc-700/60 flex items-center justify-center text-zinc-300 group-hover:text-violet-400 group-hover:border-violet-500/40 transition-colors">
+          <IconComponent className="h-4 w-4" />
         </div>
-        <h3 className="text-xs sm:text-sm font-bold text-zinc-900 mb-1 tracking-tight">
+      </div>
+
+      {/* Category Details */}
+      <div className="p-4 relative bg-zinc-900/90 border-t border-zinc-800/60">
+        <h3 className="text-sm font-bold text-white tracking-tight group-hover:text-violet-300 transition-colors truncate">
           {name}
         </h3>
-        <p className="text-[11px] font-mono text-zinc-400">
-          {count} {count === 1 ? "lot" : "lots"}
+        <p className="mt-1 text-xs font-mono text-zinc-400 flex items-center justify-between">
+          <span>{count} {count === 1 ? "lot" : "lots"}</span>
+          <span className="text-[10px] uppercase text-violet-400 opacity-0 group-hover:opacity-100 transition-opacity font-sans font-semibold">
+            Explore &rarr;
+          </span>
         </p>
       </div>
     </Link>
