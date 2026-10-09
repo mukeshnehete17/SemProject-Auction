@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, QueryMode } from "@prisma/client";
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
@@ -25,18 +25,22 @@ export function resolveDatabaseKind(url) {
  * script use DIRECT_URL instead (see prisma.config.ts).
  */
 export function getDatabaseUrl() {
-  return process.env.DATABASE_URL || "file:./prisma/dev.db";
+  return (
+    process.env.DATABASE_URL ||
+    process.env.DIRECT_URL ||
+    "file:./prisma/dev.db"
+  );
 }
 
 function getSqliteSource(url) {
-  return url.replace("file:", "").replace(".\\", "./");
+  return url.replace(/^file:/, "").replace(".\\", "./");
 }
 
 function ensureWritableDb(url) {
   const source = getSqliteSource(url);
   const absolute = path.isAbsolute(source)
     ? source
-    : path.join(process.cwd(), source);
+    : path.join(/*turbopackIgnore: true*/ process.cwd(), source);
 
   const runningOnServerless =
     process.env.VERCEL === "1" || Boolean(process.env.NOW_REGION);
@@ -66,10 +70,19 @@ function createPostgresPool(url) {
 
 function createPrismaClient() {
   const url = getDatabaseUrl();
-  if (resolveDatabaseKind(url) === "postgresql") {
-    const pool = createPostgresPool(url);
-    return new PrismaClient({ adapter: new PrismaPg(pool) });
+  const isPostgresClient = Boolean(QueryMode && QueryMode.insensitive);
+  const isPostgresUrl = resolveDatabaseKind(url) === "postgresql";
+
+  if (isPostgresClient || isPostgresUrl) {
+    const pgUrl = isPostgresUrl
+      ? url
+      : process.env.DIRECT_URL || process.env.DATABASE_URL;
+    if (pgUrl && resolveDatabaseKind(pgUrl) === "postgresql") {
+      const pool = createPostgresPool(pgUrl);
+      return new PrismaClient({ adapter: new PrismaPg(pool) });
+    }
   }
+
   const adapter = new PrismaBetterSqlite3({ url: ensureWritableDb(url) });
   return new PrismaClient({ adapter });
 }

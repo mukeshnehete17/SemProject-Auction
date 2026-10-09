@@ -6,6 +6,7 @@ import { authConfig } from "@/auth.config";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
@@ -15,8 +16,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
       // Refresh role from the authoritative user record so admin role
       // changes (or account deletion) take effect without re-login.
-      // Fail closed: a deleted account loses its role and every
-      // server-side authorization check denies it.
       if (token?.id) {
         try {
           const fresh = await prisma.user.findUnique({
@@ -31,7 +30,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return token;
     },
     session({ session, token }) {
-      if (session.user) {
+      if (session?.user) {
         session.user.id = token.id;
         session.user.role = token.role;
       }
@@ -49,20 +48,26 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const password = credentials?.password;
         if (!email || !password) return null;
 
-        const user = await prisma.user.findUnique({
-          where: { email: String(email).trim().toLowerCase() },
-        });
-        if (!user) return null;
+        const normalizedEmail = String(email).trim().toLowerCase();
+        try {
+          const user = await prisma.user.findUnique({
+            where: { email: normalizedEmail },
+          });
+          if (!user || !user.password) return null;
 
-        const valid = await bcrypt.compare(String(password), user.password);
-        if (!valid) return null;
+          const valid = await bcrypt.compare(String(password), user.password);
+          if (!valid) return null;
 
-        return {
-          id: String(user.id),
-          name: user.name,
-          email: user.email,
-          role: user.role,
-        };
+          return {
+            id: String(user.id),
+            name: user.name,
+            email: user.email,
+            role: user.role,
+          };
+        } catch (err) {
+          console.error("[TORI Auth] authorize error:", err);
+          return null;
+        }
       },
     }),
   ],
