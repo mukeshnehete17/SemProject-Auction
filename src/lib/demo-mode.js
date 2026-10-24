@@ -8,9 +8,21 @@ export const DEMO_LOTS = [
     minIncrement: 2000,
   },
   {
+    title: "MacBook Air M2",
+    durationDays: 4,
+    startingPrice: 65000,
+    minIncrement: 1000,
+  },
+  {
     title: "Aether Phone Pro Max 512GB",
     durationDays: 3,
     startingPrice: 89000,
+    minIncrement: 1500,
+  },
+  {
+    title: "iPhone 15 Pro Max",
+    durationDays: 3,
+    startingPrice: 95000,
     minIncrement: 1500,
   },
   {
