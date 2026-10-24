@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { deriveStatus } from "@/lib/auctions";
+import { ensureDemoLotsActive } from "@/lib/demo-mode";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request, { params }) {
+  await ensureDemoLotsActive();
   const resolvedParams = await params;
   const numericId = Number.parseInt(resolvedParams.id, 10);
   if (Number.isNaN(numericId)) {

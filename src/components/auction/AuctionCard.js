@@ -22,8 +22,14 @@ export default function AuctionCard({ auction }) {
             imgClassName="group-hover:scale-105 transition-transform duration-500 ease-out"
           />
           {/* Status Badge floating */}
-          <div className="absolute top-3 left-3 z-10">
+          <div className="absolute top-3 left-3 z-10 flex items-center gap-1.5 flex-wrap">
             <StatusBadge status={auction.status} />
+            {auction.isDemo && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50/95 backdrop-blur-xs px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase text-amber-800 shadow-2xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                Demo Lot
+              </span>
+            )}
           </div>
 
           {/* Bid count pill */}

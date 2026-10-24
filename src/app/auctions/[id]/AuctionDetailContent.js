@@ -345,6 +345,12 @@ export default function AuctionDetailContent({
                 <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-indigo-600 bg-indigo-50 border border-indigo-200/60 px-2.5 py-0.5 rounded-full">
                   {initialAuction.category}
                 </span>
+                {initialAuction.isDemo && (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2.5 py-0.5 text-[10px] font-bold tracking-wider uppercase text-amber-800">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                    Demo Lot
+                  </span>
+                )}
                 <span className="text-xs font-mono text-zinc-500">
                   {liveAuction.numberOfBids || 0} Total Bids
                 </span>

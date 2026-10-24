@@ -8,6 +8,7 @@ import { formatPrice } from "@/lib/utils";
 import { broadcastAuctionUpdate } from "@/lib/auction-events";
 import { sendOutbidEmail } from "@/lib/email";
 import { createAuditLog } from "@/lib/audit";
+import { ensureDemoLotsActive } from "@/lib/demo-mode";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -78,7 +79,7 @@ export async function createAuctionAction(data) {
     return { error: "Only sellers can create auctions." };
   }
 
-  const { title, description, image, startingPrice, minimumIncrement, startTime, endTime, categoryId } =
+  const { title, description, image, images, startingPrice, minimumIncrement, startTime, endTime, categoryId } =
     getEditableFields(data);
 
   if (!title || title.length < 3) {
@@ -144,7 +145,8 @@ export async function createAuctionAction(data) {
       actorId: user.id,
       metadata: { title, startingPrice, categoryId: category.id },
     });
-  } catch {
+  } catch (err) {
+    console.error("[createAuctionAction] Error creating auction:", err);
     return { error: "Something went wrong. Please try again." };
   }
 
@@ -174,7 +176,7 @@ export async function updateAuctionAction(id, data) {
     return { error: "Auctions that already have bids cannot be edited." };
   }
 
-  const { title, description, image, startingPrice, minimumIncrement, startTime, endTime, categoryId } =
+  const { title, description, image, images, startingPrice, minimumIncrement, startTime, endTime, categoryId } =
     getEditableFields(data);
 
   if (!title || title.length < 3) {
@@ -233,7 +235,8 @@ export async function updateAuctionAction(id, data) {
       actorId: user.id,
       metadata: { title, startingPrice },
     });
-  } catch {
+  } catch (err) {
+    console.error("[updateAuctionAction] Error updating auction:", err);
     return { error: "Something went wrong. Please try again." };
   }
 
@@ -302,6 +305,7 @@ export async function placeBidAction(auctionId, amount) {
   if (!user) {
     return { error: "Please sign in to place a bid.", code: "UNAUTHENTICATED" };
   }
+  await ensureDemoLotsActive();
   if (user.role === "ADMIN") {
     return { error: "Admins cannot place bids." };
   }

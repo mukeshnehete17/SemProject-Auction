@@ -4,6 +4,7 @@ import { formatPrice } from "@/lib/utils";
 import { broadcastAuctionUpdate } from "@/lib/auction-events";
 import { sendAuctionWonEmail, sendSellerAuctionEndedEmail } from "@/lib/email";
 import { createAuditLog } from "@/lib/audit";
+import { ensureDemoLotsActive, isDemoLot } from "@/lib/demo-mode";
 
 const ENDING_SOON_HOURS = 24;
 
@@ -62,6 +63,7 @@ export function toAuctionShape(auction) {
     startTime: (auction.startTime instanceof Date ? auction.startTime : new Date(auction.startTime)).toISOString(),
     endTime: (auction.endTime instanceof Date ? auction.endTime : new Date(auction.endTime)).toISOString(),
     status: deriveStatus(auction.status, auction.startTime, auction.endTime),
+    isDemo: isDemoLot(auction.title),
     bids: (auction.bids || []).map((bid) => ({
       bidder: bid.bidder?.name || "Bidder",
       amount: bid.amount,
@@ -134,6 +136,7 @@ export function getAuctionSortOrder(sort) {
 }
 
 export async function getAuctions(filters = {}) {
+  await ensureDemoLotsActive();
   const { search, category, status, minPrice, maxPrice, sort } = filters || {};
   const andClauses = [];
 
@@ -353,6 +356,7 @@ export async function getAuctionById(id) {
   const numericId = Number.parseInt(id, 10);
   if (Number.isNaN(numericId)) return null;
 
+  await ensureDemoLotsActive();
   await completeAuctionIfNeeded(numericId);
 
   try {
