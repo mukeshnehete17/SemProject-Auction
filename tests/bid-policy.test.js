@@ -4,7 +4,11 @@ import {
   validateBid,
   MAX_PRICE,
 } from "@/lib/bids.js";
-import { deriveStatus, getAuctionSortOrder } from "@/lib/auctions.js";
+import {
+  deriveStatus,
+  getAuctionSortOrder,
+  buildStatusWhere,
+} from "@/lib/auctions.js";
 
 function openAuction(overrides = {}) {
   const now = Date.now();
@@ -97,12 +101,28 @@ describe("validateBid policy", () => {
     });
     expect(err).toMatch(/must be at least/);
   });
+  it("rejects bids on auctions explicitly marked as ENDED in DB", () => {
+    const now = Date.now();
+    expect(
+      validateBid({
+        auction: openAuction({
+          status: "ENDED",
+          startTime: new Date(now - 3600_000),
+          endTime: new Date(now + 3600_000), // even if end time were in future
+        }),
+        userId: 20,
+        userRole: "BUYER",
+        amount: 5500,
+      })
+    ).toBe("This auction has already ended.");
+  });
 });
 
 describe("deriveStatus", () => {
   it("derives cancelled/upcoming/active/ending_soon/ended from server time", () => {
     const now = Date.now();
     expect(deriveStatus("CANCELLED", new Date(now - 1), new Date(now + 1))).toBe("cancelled");
+    expect(deriveStatus("ENDED", new Date(now - 3600_000), new Date(now + 3600_000))).toBe("ended");
     expect(
       deriveStatus("ACTIVE", new Date(now + 3600_000), new Date(now + 7200_000))
     ).toBe("upcoming");
@@ -116,9 +136,57 @@ describe("deriveStatus", () => {
       deriveStatus("ACTIVE", new Date(now - 3600_000), new Date(now + 48 * 3600_000))
     ).toBe("active");
   });
+  it("evaluates boundary conditions around auction end times cleanly", () => {
+    const now = Date.now();
+    // 1 ms in the past -> ended
+    expect(deriveStatus("ACTIVE", new Date(now - 3600_000), new Date(now - 1))).toBe("ended");
+    // exactly now -> ended
+    expect(deriveStatus("ACTIVE", new Date(now - 3600_000), new Date(now))).toBe("ended");
+    // 5 seconds in future -> ending_soon
+    expect(deriveStatus("ACTIVE", new Date(now - 3600_000), new Date(now + 5000))).toBe("ending_soon");
+  });
   it("falls back to a safe default sort for arbitrary user input", () => {
     expect(getAuctionSortOrder("ending_soon")).toEqual([{ endTime: "asc" }]);
     expect(getAuctionSortOrder("price_low")).toEqual([{ currentPrice: "asc" }]);
     expect(getAuctionSortOrder("'; DROP TABLE Auction; --")).toEqual([{ endTime: "asc" }]);
+  });
+});
+
+describe("buildStatusWhere database filters", () => {
+  it("excludes CANCELLED and ENDED from active, ending_soon, and upcoming queries", () => {
+    const active = buildStatusWhere("active");
+    expect(active.status).toEqual({ notIn: ["CANCELLED", "ENDED"] });
+    expect(active.startTime).toBeDefined();
+    expect(active.endTime).toBeDefined();
+
+    const endingSoon = buildStatusWhere("ending_soon");
+    expect(endingSoon.status).toEqual({ notIn: ["CANCELLED", "ENDED"] });
+    expect(endingSoon.endTime.gt).toBeDefined();
+    expect(endingSoon.endTime.lte).toBeDefined();
+
+    const upcoming = buildStatusWhere("upcoming");
+    expect(upcoming.status).toEqual({ notIn: ["CANCELLED", "ENDED"] });
+    expect(upcoming.startTime.gt).toBeDefined();
+  });
+
+  it("constructs correct filter for ended lots preserving cancelled exclusions", () => {
+    const ended = buildStatusWhere("ended");
+    expect(ended.status).toEqual({ not: "CANCELLED" });
+    expect(ended.OR).toEqual(
+      expect.arrayContaining([
+        { status: "ENDED" },
+        expect.objectContaining({ endTime: expect.any(Object) }),
+      ])
+    );
+  });
+
+  it("constructs correct filter for cancelled lots", () => {
+    const cancelled = buildStatusWhere("cancelled");
+    expect(cancelled).toEqual({ status: "CANCELLED" });
+  });
+
+  it("returns null for unknown status filter", () => {
+    expect(buildStatusWhere("all")).toBeNull();
+    expect(buildStatusWhere("non_existent")).toBeNull();
   });
 });

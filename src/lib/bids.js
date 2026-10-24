@@ -24,8 +24,12 @@ export function normalizeBidAmount(raw) {
 export function validateBid({ auction, userId, userRole, amount, now = new Date() }) {
   if (!auction) return "Auction not found.";
   if (auction.status === "CANCELLED") return "This auction has been cancelled.";
-  if (now < new Date(auction.startTime)) return "This auction hasn't started yet.";
-  if (now >= new Date(auction.endTime)) return "This auction has already ended.";
+  if (auction.status === "ENDED") return "This auction has already ended.";
+  const nowDate = now instanceof Date ? now : new Date(now);
+  const startDate = new Date(auction.startTime);
+  const endDate = new Date(auction.endTime);
+  if (nowDate < startDate) return "This auction hasn't started yet.";
+  if (nowDate >= endDate) return "This auction has already ended.";
   if (auction.sellerId === userId) return "You cannot bid on your own auction.";
   if (userRole === "ADMIN") return "Admins cannot place bids.";
   const minimumBid = auction.currentPrice + auction.minimumIncrement;

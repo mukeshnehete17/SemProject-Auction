@@ -496,6 +496,379 @@ function getDemoAuctionDefinitions(users, categories) {
         { amount: 31500, bidderId: buyer.id, createdAt: new Date(now.getTime() - 50 * hourMs) },
       ],
     },
+    // 21. MacBook Air M2 (ACTIVE)
+    {
+      title: "MacBook Air M2",
+      description: "Brand new Apple MacBook Air with M2 chip, 8-core CPU, 10-core GPU, 8GB Unified Memory, and 512GB SSD storage in Midnight. Unopened box with manufacturer warranty.",
+      image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600&h=400&fit=crop",
+      startingPrice: 65000,
+      currentPrice: 72500,
+      minimumIncrement: 1000,
+      startTime: new Date(now.getTime() - 2 * dayMs),
+      endTime: new Date(now.getTime() + 5 * dayMs),
+      status: "ACTIVE",
+      sellerId: amit.id,
+      categoryId: categories["computers"].id,
+      bids: [
+        { amount: 67000, bidderId: rahul.id, createdAt: new Date(now.getTime() - 36 * hourMs) },
+        { amount: 69000, bidderId: priya.id, createdAt: new Date(now.getTime() - 20 * hourMs) },
+        { amount: 71000, bidderId: krishna.id, createdAt: new Date(now.getTime() - 8 * hourMs) },
+        { amount: 72500, bidderId: buyer.id, createdAt: new Date(now.getTime() - 35 * 60 * 1000) },
+      ],
+    },
+    // 22. iPhone 15 Pro Max (ACTIVE)
+    {
+      title: "iPhone 15 Pro Max",
+      description: "Apple iPhone 15 Pro Max 256GB in Natural Titanium. Unlocked, with original box and cable. 100% battery health with AppleCare coverage.",
+      image: "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=600&h=400&fit=crop",
+      startingPrice: 85000,
+      currentPrice: 98500,
+      minimumIncrement: 1500,
+      startTime: new Date(now.getTime() - 3 * dayMs),
+      endTime: new Date(now.getTime() + 7 * dayMs),
+      status: "ACTIVE",
+      sellerId: sneha.id,
+      categoryId: categories["electronics"].id,
+      bids: [
+        { amount: 88000, bidderId: priya.id, createdAt: new Date(now.getTime() - 48 * hourMs) },
+        { amount: 91000, bidderId: krishna.id, createdAt: new Date(now.getTime() - 28 * hourMs) },
+        { amount: 94000, bidderId: rahul.id, createdAt: new Date(now.getTime() - 12 * hourMs) },
+        { amount: 97000, bidderId: priya.id, createdAt: new Date(now.getTime() - 4 * hourMs) },
+        { amount: 98500, bidderId: rahul.id, createdAt: new Date(now.getTime() - 20 * 60 * 1000) },
+      ],
+    },
+    // 23. Sony WH-1000XM5 (ACTIVE - ENDING SOON)
+    {
+      title: "Sony WH-1000XM5",
+      description: "Sony industry-leading noise cancelling headphones with exceptional sound quality and 30-hour battery life. Black color, lightly used in smoke-free studio.",
+      image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=400&fit=crop",
+      startingPrice: 18000,
+      currentPrice: 22500,
+      minimumIncrement: 500,
+      startTime: new Date(now.getTime() - 2 * dayMs),
+      endTime: new Date(now.getTime() + 22 * hourMs),
+      status: "ACTIVE",
+      sellerId: sneha.id,
+      categoryId: categories["electronics"].id,
+      bids: [
+        { amount: 19500, bidderId: krishna.id, createdAt: new Date(now.getTime() - 30 * hourMs) },
+        { amount: 20500, bidderId: rahul.id, createdAt: new Date(now.getTime() - 16 * hourMs) },
+        { amount: 21500, bidderId: priya.id, createdAt: new Date(now.getTime() - 6 * hourMs) },
+        { amount: 22500, bidderId: buyer.id, createdAt: new Date(now.getTime() - 25 * 60 * 1000) },
+      ],
+    },
+    // 24. Canon EOS R50 Camera (ACTIVE)
+    {
+      title: "Canon EOS R50 Camera",
+      description: "Canon EOS R50 mirrorless camera with 18-45mm lens kit. 24.2MP APS-C sensor with 4K video recording. Like new condition with lens caps, neck strap, and extra battery.",
+      image: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=600&h=400&fit=crop",
+      startingPrice: 42000,
+      currentPrice: 48500,
+      minimumIncrement: 1000,
+      startTime: new Date(now.getTime() - 2 * dayMs),
+      endTime: new Date(now.getTime() + 6 * dayMs),
+      status: "ACTIVE",
+      sellerId: arjun.id,
+      categoryId: categories["cameras"].id,
+      bids: [
+        { amount: 44000, bidderId: krishna.id, createdAt: new Date(now.getTime() - 32 * hourMs) },
+        { amount: 45500, bidderId: rahul.id, createdAt: new Date(now.getTime() - 18 * hourMs) },
+        { amount: 47000, bidderId: priya.id, createdAt: new Date(now.getTime() - 6 * hourMs) },
+        { amount: 48500, bidderId: krishna.id, createdAt: new Date(now.getTime() - 40 * 60 * 1000) },
+      ],
+    },
+    // 25. PlayStation 5 (ACTIVE)
+    {
+      title: "PlayStation 5",
+      description: "Sony PlayStation 5 Disc Edition with one DualSense controller. Includes 3 months of PS Plus subscription and original packaging.",
+      image: "https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=600&h=400&fit=crop",
+      startingPrice: 38000,
+      currentPrice: 46500,
+      minimumIncrement: 1000,
+      startTime: new Date(now.getTime() - 2 * dayMs),
+      endTime: new Date(now.getTime() + 4 * dayMs),
+      status: "ACTIVE",
+      sellerId: amit.id,
+      categoryId: categories["gaming"].id,
+      bids: [
+        { amount: 40000, bidderId: rahul.id, createdAt: new Date(now.getTime() - 28 * hourMs) },
+        { amount: 42000, bidderId: krishna.id, createdAt: new Date(now.getTime() - 15 * hourMs) },
+        { amount: 44000, bidderId: priya.id, createdAt: new Date(now.getTime() - 5 * hourMs) },
+        { amount: 46500, bidderId: rahul.id, createdAt: new Date(now.getTime() - 30 * 60 * 1000) },
+      ],
+    },
+    // 26. Custom Mechanical Keyboard (ACTIVE)
+    {
+      title: "Custom Mechanical Keyboard",
+      description: "Custom-built mechanical keyboard with Gateron Yellow switches, PBT keycaps, and RGB backlighting. Hot-swappable with sound-dampening foam.",
+      image: "https://images.unsplash.com/photo-1511467687858-23d96c32e4ae?w=600&h=400&fit=crop",
+      startingPrice: 8500,
+      currentPrice: 12000,
+      minimumIncrement: 500,
+      startTime: new Date(now.getTime() - 1 * dayMs),
+      endTime: new Date(now.getTime() + 3 * dayMs),
+      status: "ACTIVE",
+      sellerId: arjun.id,
+      categoryId: categories["electronics"].id,
+      bids: [
+        { amount: 9500, bidderId: priya.id, createdAt: new Date(now.getTime() - 18 * hourMs) },
+        { amount: 10500, bidderId: rahul.id, createdAt: new Date(now.getTime() - 10 * hourMs) },
+        { amount: 11500, bidderId: krishna.id, createdAt: new Date(now.getTime() - 3 * hourMs) },
+        { amount: 12000, bidderId: buyer.id, createdAt: new Date(now.getTime() - 20 * 60 * 1000) },
+      ],
+    },
+    // 27. Samsung Galaxy S24 Ultra (ACTIVE)
+    {
+      title: "Samsung Galaxy S24 Ultra",
+      description: "Samsung Galaxy S24 Ultra 512GB in Titanium Black. S Pen included, with Samsung Care+ warranty and pristine Gorilla Armor screen.",
+      image: "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=600&h=400&fit=crop",
+      startingPrice: 72000,
+      currentPrice: 81000,
+      minimumIncrement: 1500,
+      startTime: new Date(now.getTime() - 2 * dayMs),
+      endTime: new Date(now.getTime() + 6 * dayMs),
+      status: "ACTIVE",
+      sellerId: amit.id,
+      categoryId: categories["electronics"].id,
+      bids: [
+        { amount: 74000, bidderId: krishna.id, createdAt: new Date(now.getTime() - 36 * hourMs) },
+        { amount: 76500, bidderId: rahul.id, createdAt: new Date(now.getTime() - 20 * hourMs) },
+        { amount: 79000, bidderId: priya.id, createdAt: new Date(now.getTime() - 8 * hourMs) },
+        { amount: 81000, bidderId: krishna.id, createdAt: new Date(now.getTime() - 50 * 60 * 1000) },
+      ],
+    },
+    // 28. Vintage Rolex Watch (ACTIVE)
+    {
+      title: "Vintage Rolex Watch",
+      description: "Vintage Rolex Datejust 36mm from 1985. Gold and steel combination, recently serviced with papers and genuine Jubilee bracelet.",
+      image: "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=600&h=400&fit=crop",
+      startingPrice: 150000,
+      currentPrice: 185000,
+      minimumIncrement: 5000,
+      startTime: new Date(now.getTime() - 3 * dayMs),
+      endTime: new Date(now.getTime() + 8 * dayMs),
+      status: "ACTIVE",
+      sellerId: arjun.id,
+      categoryId: categories["collectibles"].id,
+      bids: [
+        { amount: 160000, bidderId: priya.id, createdAt: new Date(now.getTime() - 48 * hourMs) },
+        { amount: 170000, bidderId: rahul.id, createdAt: new Date(now.getTime() - 24 * hourMs) },
+        { amount: 178000, bidderId: krishna.id, createdAt: new Date(now.getTime() - 10 * hourMs) },
+        { amount: 185000, bidderId: priya.id, createdAt: new Date(now.getTime() - 45 * 60 * 1000) },
+      ],
+    },
+    // 29. iPad Air M1 (ACTIVE)
+    {
+      title: "iPad Air M1",
+      description: "Apple iPad Air M1 with 64GB storage, Wi-Fi model in Space Grey. Includes Apple Pencil 2nd gen and smart folio cover.",
+      image: "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=600&h=400&fit=crop",
+      startingPrice: 42000,
+      currentPrice: 47000,
+      minimumIncrement: 1000,
+      startTime: new Date(now.getTime() - 2 * dayMs),
+      endTime: new Date(now.getTime() + 7 * dayMs),
+      status: "ACTIVE",
+      sellerId: sneha.id,
+      categoryId: categories["computers"].id,
+      bids: [
+        { amount: 43500, bidderId: rahul.id, createdAt: new Date(now.getTime() - 30 * hourMs) },
+        { amount: 45000, bidderId: krishna.id, createdAt: new Date(now.getTime() - 14 * hourMs) },
+        { amount: 46000, bidderId: priya.id, createdAt: new Date(now.getTime() - 4 * hourMs) },
+        { amount: 47000, bidderId: buyer.id, createdAt: new Date(now.getTime() - 15 * 60 * 1000) },
+      ],
+    },
+    // 30. Xbox Series X (ACTIVE)
+    {
+      title: "Xbox Series X",
+      description: "Microsoft Xbox Series X 1TB console with two wireless controllers. Includes 3 Game Pass Ultimate months and HDMI 2.1 cable.",
+      image: "https://images.unsplash.com/photo-1621259182978-fbf93132d53d?w=600&h=400&fit=crop",
+      startingPrice: 35000,
+      currentPrice: 41000,
+      minimumIncrement: 1000,
+      startTime: new Date(now.getTime() - 1 * dayMs),
+      endTime: new Date(now.getTime() + 3 * dayMs),
+      status: "ACTIVE",
+      sellerId: amit.id,
+      categoryId: categories["gaming"].id,
+      bids: [
+        { amount: 37000, bidderId: priya.id, createdAt: new Date(now.getTime() - 20 * hourMs) },
+        { amount: 38500, bidderId: krishna.id, createdAt: new Date(now.getTime() - 10 * hourMs) },
+        { amount: 40000, bidderId: rahul.id, createdAt: new Date(now.getTime() - 3 * hourMs) },
+        { amount: 41000, bidderId: krishna.id, createdAt: new Date(now.getTime() - 30 * 60 * 1000) },
+      ],
+    },
+    // 31. Logitech MX Master 3S Wireless Mouse (ACTIVE)
+    {
+      title: "Logitech MX Master 3S Wireless Mouse",
+      description: "The Logitech MX Master 3S wireless mouse with 8,000 DPI sensor, quiet clicks, and MagSpeed electromagnetic scrolling. In flawless condition with original packaging.",
+      image: "https://images.unsplash.com/photo-1527814050087-3793815479db?w=600&h=400&fit=crop",
+      startingPrice: 4000,
+      currentPrice: 6000,
+      minimumIncrement: 500,
+      startTime: new Date(now.getTime() - 2 * dayMs),
+      endTime: new Date(now.getTime() + 3 * dayMs),
+      status: "ACTIVE",
+      sellerId: seller.id,
+      categoryId: categories["electronics"].id,
+      bids: [
+        { amount: 4500, bidderId: buyer.id, createdAt: new Date(now.getTime() - 24 * hourMs) },
+        { amount: 5000, bidderId: rahul.id, createdAt: new Date(now.getTime() - 12 * hourMs) },
+        { amount: 5500, bidderId: priya.id, createdAt: new Date(now.getTime() - 4 * hourMs) },
+        { amount: 6000, bidderId: buyer.id, createdAt: new Date(now.getTime() - 30 * 60 * 1000) },
+      ],
+    },
+    // 32. GoPro Hero 12 (UPCOMING)
+    {
+      title: "GoPro Hero 12",
+      description: "GoPro Hero 12 Black action camera with waterproof housing. 5.3K video, HyperSmooth 6.0 stabilization, and dual LCD screens with Enduro battery.",
+      image: "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600&h=400&fit=crop",
+      startingPrice: 28000,
+      currentPrice: 28000,
+      minimumIncrement: 1000,
+      startTime: new Date(now.getTime() + 2 * dayMs),
+      endTime: new Date(now.getTime() + 7 * dayMs),
+      status: "UPCOMING",
+      sellerId: sneha.id,
+      categoryId: categories["cameras"].id,
+      bids: [],
+    },
+    // 33. Rare Pokemon Cards Collection (UPCOMING)
+    {
+      title: "Rare Pokemon Cards Collection",
+      description: "Collection of 50 rare Pokemon cards including holographic Charizard, Blastoise, and Venusaur. Mint condition in protective archival sleeves.",
+      image: "https://images.unsplash.com/photo-1611374243147-44a792e6f468?w=600&h=400&fit=crop",
+      startingPrice: 25000,
+      currentPrice: 25000,
+      minimumIncrement: 1000,
+      startTime: new Date(now.getTime() + 3 * dayMs),
+      endTime: new Date(now.getTime() + 10 * dayMs),
+      status: "UPCOMING",
+      sellerId: arjun.id,
+      categoryId: categories["collectibles"].id,
+      bids: [],
+    },
+    // 34. SteelSeries Arctis Nova Pro Wireless Headset (UPCOMING)
+    {
+      title: "SteelSeries Arctis Nova Pro Wireless Headset",
+      description: "SteelSeries Arctis Nova Pro wireless gaming headset with lossless 2.4GHz, Bluetooth, and simultaneous audio mixing. Includes dual hot-swappable batteries and active noise cancellation.",
+      image: "https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?w=600&h=400&fit=crop",
+      startingPrice: 15000,
+      currentPrice: 15000,
+      minimumIncrement: 500,
+      startTime: new Date(now.getTime() + 2 * dayMs),
+      endTime: new Date(now.getTime() + 7 * dayMs),
+      status: "UPCOMING",
+      sellerId: seller.id,
+      categoryId: categories["gaming"].id,
+      bids: [],
+    },
+    // 35. Nike Air Jordan 1 (ENDED)
+    {
+      title: "Nike Air Jordan 1",
+      description: "Nike Air Jordan 1 Retro High OG in Chicago colorway. Size 10 UK, deadstock in original box with authentication certificate.",
+      image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&h=400&fit=crop",
+      startingPrice: 12000,
+      currentPrice: 16500,
+      minimumIncrement: 500,
+      startTime: new Date(now.getTime() - 8 * dayMs),
+      endTime: new Date(now.getTime() - 4 * dayMs),
+      status: "ENDED",
+      sellerId: sneha.id,
+      categoryId: categories["sneakers"] ? categories["sneakers"].id : categories["fashion"].id,
+      bids: [
+        { amount: 13000, bidderId: krishna.id, createdAt: new Date(now.getTime() - 7 * dayMs) },
+        { amount: 14500, bidderId: rahul.id, createdAt: new Date(now.getTime() - 6 * dayMs) },
+        { amount: 15500, bidderId: priya.id, createdAt: new Date(now.getTime() - 5 * dayMs) },
+        { amount: 16500, bidderId: buyer.id, createdAt: new Date(now.getTime() - 4 * dayMs - 2 * hourMs) },
+      ],
+    },
+    // 36. Dell 27" Monitor (ENDED)
+    {
+      title: "Dell 27\" Monitor",
+      description: "Dell S2722QC 27-inch 4K UHD monitor with USB-C connectivity. Perfect for work from home setup with 65W power delivery.",
+      image: "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=600&h=400&fit=crop",
+      startingPrice: 18500,
+      currentPrice: 21000,
+      minimumIncrement: 500,
+      startTime: new Date(now.getTime() - 9 * dayMs),
+      endTime: new Date(now.getTime() - 5 * dayMs),
+      status: "ENDED",
+      sellerId: amit.id,
+      categoryId: categories["computers"].id,
+      bids: [
+        { amount: 19500, bidderId: rahul.id, createdAt: new Date(now.getTime() - 8 * dayMs) },
+        { amount: 20500, bidderId: krishna.id, createdAt: new Date(now.getTime() - 6 * dayMs) },
+        { amount: 21000, bidderId: priya.id, createdAt: new Date(now.getTime() - 5 * dayMs - hourMs) },
+      ],
+    },
+    // 37. Adidas Ultraboost (ENDED)
+    {
+      title: "Adidas Ultraboost",
+      description: "Adidas Ultraboost 22 running shoes in Core Black. Size 10 UK, brand new with tags and continental rubber outsole.",
+      image: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=600&h=400&fit=crop",
+      startingPrice: 8000,
+      currentPrice: 10500,
+      minimumIncrement: 500,
+      startTime: new Date(now.getTime() - 10 * dayMs),
+      endTime: new Date(now.getTime() - 6 * dayMs),
+      status: "ENDED",
+      sellerId: sneha.id,
+      categoryId: categories["sneakers"] ? categories["sneakers"].id : categories["fashion"].id,
+      bids: [
+        { amount: 9000, bidderId: krishna.id, createdAt: new Date(now.getTime() - 9 * dayMs) },
+        { amount: 10000, bidderId: rahul.id, createdAt: new Date(now.getTime() - 8 * dayMs) },
+        { amount: 10500, bidderId: buyer.id, createdAt: new Date(now.getTime() - 6 * dayMs - 3 * hourMs) },
+      ],
+    },
+    // 38. Apple AirPods Pro 2 (ENDED)
+    {
+      title: "Apple AirPods Pro 2",
+      description: "Apple AirPods Pro 2 with Adaptive ANC, USB-C charging case, and four sizes of silicone tips. Brand new, sealed in original packaging.",
+      image: "https://images.unsplash.com/photo-1487058716971-5d5192523bfe?w=600&h=400&fit=crop",
+      startingPrice: 17000,
+      currentPrice: 19500,
+      minimumIncrement: 500,
+      startTime: new Date(now.getTime() - 10 * dayMs),
+      endTime: new Date(now.getTime() - 2 * dayMs),
+      status: "ENDED",
+      sellerId: seller.id,
+      categoryId: categories["electronics"].id,
+      bids: [
+        { amount: 18000, bidderId: rahul.id, createdAt: new Date(now.getTime() - 8 * dayMs) },
+        { amount: 19000, bidderId: rahul.id, createdAt: new Date(now.getTime() - 4 * dayMs) },
+        { amount: 19500, bidderId: buyer.id, createdAt: new Date(now.getTime() - 2 * dayMs - 2 * hourMs) },
+      ],
+    },
+    // 39. Bose QuietComfort Ultra Headphones (ENDED - NO BIDS)
+    {
+      title: "Bose QuietComfort Ultra Headphones",
+      description: "Bose QuietComfort Ultra wireless headphones with world-class noise cancellation and immersive spatial audio. Like new condition in carry case.",
+      image: "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=600&h=400&fit=crop",
+      startingPrice: 28000,
+      currentPrice: 28000,
+      minimumIncrement: 1000,
+      startTime: new Date(now.getTime() - 8 * dayMs),
+      endTime: new Date(now.getTime() - 1 * dayMs),
+      status: "ENDED",
+      sellerId: seller.id,
+      categoryId: categories["electronics"].id,
+      bids: [],
+    },
+    // 40. LG C3 65" OLED TV (CANCELLED)
+    {
+      title: 'LG C3 65" OLED TV',
+      description: "Premium 65-inch OLED smart TV with 4K resolution, Dolby Vision, and webOS. Originally purchased in 2024. Cancelled due to seller withdrawal.",
+      image: "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=600&h=400&fit=crop",
+      startingPrice: 85000,
+      currentPrice: 85000,
+      minimumIncrement: 2000,
+      startTime: new Date(now.getTime() - 3 * dayMs),
+      endTime: new Date(now.getTime() + 7 * dayMs),
+      status: "CANCELLED",
+      sellerId: seller.id,
+      categoryId: categories["electronics"].id,
+      bids: [],
+    },
   ];
 }
 
@@ -518,7 +891,7 @@ async function seedAuctionData(userByEmail, categoryBySlug) {
         },
       });
     } else {
-      // Update image and attributes idempotently
+      // Update image, timestamps, prices, and status idempotently
       await prisma.auction.update({
         where: { id: auction.id },
         data: {
@@ -533,6 +906,15 @@ async function seedAuctionData(userByEmail, categoryBySlug) {
           categoryId: auctionData.categoryId,
         },
       });
+
+      if (bids && bids.length > 0) {
+        const bidCount = await prisma.bid.count({ where: { auctionId: auction.id } });
+        if (bidCount === 0) {
+          await prisma.bid.createMany({
+            data: bids.map((b) => ({ ...b, auctionId: auction.id })),
+          });
+        }
+      }
     }
   }
 }
@@ -633,7 +1015,7 @@ async function main() {
   }
 }
 
-module.exports = { isProductionSeedBlocked };
+module.exports = { isProductionSeedBlocked, getDemoAuctionDefinitions, seedAuctionData };
 
 if (require.main === module) {
   if (isProductionSeedBlocked()) {

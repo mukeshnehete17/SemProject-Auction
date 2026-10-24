@@ -9,6 +9,7 @@ const ENDING_SOON_HOURS = 24;
 
 export function deriveStatus(status, startTime, endTime) {
   if (status === "CANCELLED") return "cancelled";
+  if (status === "ENDED") return "ended";
 
   const now = Date.now();
   const start = new Date(startTime).getTime();
@@ -58,13 +59,13 @@ export function toAuctionShape(auction) {
       rating: 4.5,
     },
     sellerId: auction.sellerId,
-    startTime: auction.startTime.toISOString(),
-    endTime: auction.endTime.toISOString(),
+    startTime: (auction.startTime instanceof Date ? auction.startTime : new Date(auction.startTime)).toISOString(),
+    endTime: (auction.endTime instanceof Date ? auction.endTime : new Date(auction.endTime)).toISOString(),
     status: deriveStatus(auction.status, auction.startTime, auction.endTime),
     bids: (auction.bids || []).map((bid) => ({
       bidder: bid.bidder?.name || "Bidder",
       amount: bid.amount,
-      time: bid.createdAt.toISOString(),
+      time: (bid.createdAt instanceof Date ? bid.createdAt : new Date(bid.createdAt)).toISOString(),
     })),
   };
 }
@@ -89,20 +90,26 @@ export function buildStatusWhere(status) {
   switch (status) {
     case "active":
       return {
-        status: { not: "CANCELLED" },
+        status: { notIn: ["CANCELLED", "ENDED"] },
         startTime: { lte: now },
         endTime: { gt: soon },
       };
     case "ending_soon":
       return {
-        status: { not: "CANCELLED" },
+        status: { notIn: ["CANCELLED", "ENDED"] },
         startTime: { lte: now },
         endTime: { gt: now, lte: soon },
       };
     case "upcoming":
-      return { status: { not: "CANCELLED" }, startTime: { gt: now } };
+      return {
+        status: { notIn: ["CANCELLED", "ENDED"] },
+        startTime: { gt: now },
+      };
     case "ended":
-      return { status: { not: "CANCELLED" }, endTime: { lte: now } };
+      return {
+        status: { not: "CANCELLED" },
+        OR: [{ status: "ENDED" }, { endTime: { lte: now } }],
+      };
     case "cancelled":
       return { status: "CANCELLED" };
     default:
@@ -128,14 +135,16 @@ export function getAuctionSortOrder(sort) {
 
 export async function getAuctions(filters = {}) {
   const { search, category, status, minPrice, maxPrice, sort } = filters || {};
-  const where = {};
+  const andClauses = [];
 
   const query = typeof search === "string" ? search.trim() : "";
   if (query) {
-    where.OR = [
-      { title: { contains: query } },
-      { description: { contains: query } },
-    ];
+    andClauses.push({
+      OR: [
+        { title: { contains: query } },
+        { description: { contains: query } },
+      ],
+    });
   }
 
   if (category && category !== "all") {
@@ -143,21 +152,24 @@ export async function getAuctions(filters = {}) {
       where: { slug: category },
     });
     if (!cat) return [];
-    where.categoryId = cat.id;
+    andClauses.push({ categoryId: cat.id });
   }
 
   const min = toNumber(minPrice);
   const max = toNumber(maxPrice);
   if (min !== null || max !== null) {
-    where.currentPrice = {};
-    if (min !== null) where.currentPrice.gte = min;
-    if (max !== null) where.currentPrice.lte = max;
+    const priceWhere = {};
+    if (min !== null) priceWhere.gte = min;
+    if (max !== null) priceWhere.lte = max;
+    andClauses.push({ currentPrice: priceWhere });
   }
 
   if (status && status !== "all") {
     const statusWhere = buildStatusWhere(status);
-    if (statusWhere) Object.assign(where, statusWhere);
+    if (statusWhere) andClauses.push(statusWhere);
   }
+
+  const where = andClauses.length > 0 ? { AND: andClauses } : {};
 
   const rows = await prisma.auction.findMany({
     where,
