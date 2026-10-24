@@ -51,6 +51,7 @@ beforeAll(async () => {
       "20260910103445_init",
       "20260910114613_phase5_watchlist_notifications",
       "20261010_password_reset_token",
+      "20261023_audit_log_and_images",
     ]) {
       setup.exec(
         readFileSync(join(repoRoot, "prisma", "migrations", m, "migration.sql"), "utf8")

@@ -8,9 +8,18 @@ import { formatPrice } from "@/lib/utils";
 export default function BidPanel({ auction, currentUser, onBid }) {
   const { currentBid = 0, bidIncrement = 100, status, sellerId } = auction;
   const minBid = currentBid + bidIncrement;
+  const [prevCurrentBid, setPrevCurrentBid] = useState(currentBid);
   const [bidAmount, setBidAmount] = useState(minBid);
   const [formError, setFormError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  // Idiomatic React 19 pattern: adjust state during render when props update
+  if (currentBid !== prevCurrentBid) {
+    setPrevCurrentBid(currentBid);
+    if (bidAmount < minBid) {
+      setBidAmount(minBid);
+    }
+  }
 
   const isActive = status === "active" || status === "ending_soon";
   const isOwnAuction = currentUser && sellerId === currentUser.id;

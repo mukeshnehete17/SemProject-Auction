@@ -1,5 +1,5 @@
 export const authConfig = {
-  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "tori-default-development-secret-for-local-demo-32chars",
   trustHost: true,
   session: { strategy: "jwt" },
   pages: { signIn: "/login" },

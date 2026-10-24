@@ -4,6 +4,10 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/session";
 import { deriveStatus } from "@/lib/auctions";
 import { normalizeBidAmount, validateBid, MAX_PRICE } from "@/lib/bids";
+import { formatPrice } from "@/lib/utils";
+import { broadcastAuctionUpdate } from "@/lib/auction-events";
+import { sendOutbidEmail } from "@/lib/email";
+import { createAuditLog } from "@/lib/audit";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -32,6 +36,26 @@ function normalizeImage(image) {
   return null;
 }
 
+function normalizeImages(imagesInput, fallbackImage) {
+  let list = [];
+  if (Array.isArray(imagesInput)) {
+    list = imagesInput;
+  } else if (typeof imagesInput === "string" && imagesInput.trim()) {
+    try {
+      const parsed = JSON.parse(imagesInput);
+      if (Array.isArray(parsed)) list = parsed;
+      else list = [imagesInput];
+    } catch {
+      list = imagesInput.split(",").map((s) => s.trim());
+    }
+  }
+  const valid = list.map(normalizeImage).filter(Boolean);
+  if (valid.length === 0 && fallbackImage) {
+    valid.push(fallbackImage);
+  }
+  return valid.length > 0 ? JSON.stringify(valid) : null;
+}
+
 function getEditableFields(data) {
   const title = typeof data.title === "string" ? data.title.trim().slice(0, MAX_TITLE_LENGTH) : "";
   const description = typeof data.description === "string" ? data.description.trim().slice(0, MAX_DESCRIPTION_LENGTH) : "";
@@ -39,10 +63,12 @@ function getEditableFields(data) {
   const minimumIncrement = toPositiveNumber(data.minimumIncrement);
   const startTime = parseDateTime(data.startDate, data.startTime);
   const endTime = parseDateTime(data.endDate, data.endTime);
-  const image = normalizeImage(data.imageUrl);
+  const fallbackImage = normalizeImage(data.imageUrl);
+  const images = normalizeImages(data.images, fallbackImage);
+  const image = images ? JSON.parse(images)[0] : fallbackImage;
   const categoryId = Number.parseInt(data.categoryId, 10);
 
-  return { title, description, image, startingPrice, minimumIncrement, startTime, endTime, categoryId };
+  return { title, description, image, images, startingPrice, minimumIncrement, startTime, endTime, categoryId };
 }
 
 export async function createAuctionAction(data) {
@@ -94,11 +120,12 @@ export async function createAuctionAction(data) {
 
   try {
     const status = startTime > new Date() ? "UPCOMING" : "ACTIVE";
-    await prisma.auction.create({
+    const newAuction = await prisma.auction.create({
       data: {
         title,
         description,
         image,
+        images,
         startingPrice,
         currentPrice: startingPrice,
         minimumIncrement,
@@ -108,6 +135,14 @@ export async function createAuctionAction(data) {
         sellerId: user.id,
         categoryId: category.id,
       },
+    });
+
+    await createAuditLog({
+      action: "AUCTION_CREATE",
+      entityType: "Auction",
+      entityId: newAuction.id,
+      actorId: user.id,
+      metadata: { title, startingPrice, categoryId: category.id },
     });
   } catch {
     return { error: "Something went wrong. Please try again." };
@@ -180,6 +215,7 @@ export async function updateAuctionAction(id, data) {
         title,
         description,
         image,
+        images,
         startingPrice,
         currentPrice: startingPrice,
         minimumIncrement,
@@ -188,6 +224,14 @@ export async function updateAuctionAction(id, data) {
         status,
         categoryId: category.id,
       },
+    });
+
+    await createAuditLog({
+      action: "AUCTION_UPDATE",
+      entityType: "Auction",
+      entityId: numericId,
+      actorId: user.id,
+      metadata: { title, startingPrice },
     });
   } catch {
     return { error: "Something went wrong. Please try again." };
@@ -229,6 +273,20 @@ export async function cancelAuctionAction(id) {
       where: { id: numericId },
       data: { status: "CANCELLED" },
     });
+
+    await createAuditLog({
+      action: "AUCTION_CANCEL",
+      entityType: "Auction",
+      entityId: numericId,
+      actorId: user.id,
+      metadata: { title: existing.title },
+    });
+
+    broadcastAuctionUpdate(numericId, {
+      type: "AUCTION_CANCELLED",
+      auctionId: numericId,
+      status: "cancelled",
+    });
   } catch {
     return { error: "Something went wrong. Please try again." };
   }
@@ -264,6 +322,8 @@ export async function placeBidAction(auctionId, amount) {
         where: { id: numericId },
       });
 
+      if (!auction) return { error: "Auction not found." };
+
       const policyError = validateBid({
         auction,
         userId: user.id,
@@ -272,12 +332,26 @@ export async function placeBidAction(auctionId, amount) {
       });
       if (policyError) return { error: policyError };
 
+      // Concurrency check: query the true, committed highest bid inside this transaction.
+      // If two concurrent requests started with the same stale auction.currentPrice,
+      // the second transaction to execute will see the newly committed highest bid here.
       const previousTop = await tx.bid.findFirst({
         where: { auctionId: numericId },
         orderBy: { amount: "desc" },
-        select: { bidderId: true },
+        include: { bidder: { select: { id: true, name: true, email: true } } },
       });
 
+      const effectiveCurrentPrice = previousTop ? previousTop.amount : auction.currentPrice;
+      const minimumRequired = effectiveCurrentPrice + auction.minimumIncrement;
+
+      if (bidAmount < minimumRequired) {
+        return {
+          error: `A competing bid of ${formatPrice(effectiveCurrentPrice)} was just accepted. Your bid must be at least ${formatPrice(minimumRequired)}.`,
+          code: "OUTDATED_BID",
+        };
+      }
+
+      // Safe creation of the winning bid
       const bid = await tx.bid.create({
         data: {
           amount: bidAmount,
@@ -286,46 +360,78 @@ export async function placeBidAction(auctionId, amount) {
         },
       });
 
-      // Concurrency convergence: better-sqlite3 serializes writes but two
-      // simultaneous bids can both pass the minimum check against the same
-      // stale price. Recomputing MAX inside the same transaction guarantees
-      // currentPrice always equals the highest recorded bid, whichever bid
-      // commits last. Documented limitation: no row-level locking on this
-      // adapter, so both bids are recorded (correct auction semantics —
-      // each met the minimum at submit time) rather than one being rejected.
-      const top = await tx.bid.findFirst({
-        where: { auctionId: numericId },
-        orderBy: { amount: "desc" },
-        select: { amount: true },
-      });
-
       await tx.auction.update({
         where: { id: numericId },
-        data: { currentPrice: top ? top.amount : bidAmount },
+        data: { currentPrice: bidAmount },
       });
 
+      // Record immutable audit log inside the same transaction
+      await tx.auditLog.create({
+        data: {
+          action: "BID_PLACED",
+          entityType: "Auction",
+          entityId: numericId,
+          actorId: user.id,
+          metadata: JSON.stringify({ amount: bidAmount, bidId: bid.id }),
+        },
+      });
+
+      // Notify outbid user
       if (previousTop && previousTop.bidderId !== user.id) {
         await tx.notification.create({
           data: {
             userId: previousTop.bidderId,
-            message: `You have been outbid on "${auction.title}".`,
+            message: `You have been outbid on "${auction.title}". The new highest bid is ${formatPrice(bidAmount)}.`,
             type: "OUTBID",
             referenceId: numericId,
           },
         });
       }
 
-      return { ok: true, amount: bidAmount, bidId: bid.id };
+      return {
+        ok: true,
+        amount: bidAmount,
+        bidId: bid.id,
+        auctionTitle: auction.title,
+        outbidUser: previousTop && previousTop.bidderId !== user.id ? previousTop.bidder : null,
+      };
     });
 
     if (result.error) return result;
+
+    // Asynchronously dispatch outbid email (non-blocking)
+    if (result.outbidUser?.email) {
+      sendOutbidEmail({
+        to: result.outbidUser.email,
+        userName: result.outbidUser.name,
+        auctionTitle: result.auctionTitle,
+        auctionId: numericId,
+        newHighestBid: result.amount,
+      }).catch((err) => console.error("[TORI Email] Error sending outbid email:", err));
+    }
+
+    // Broadcast live update to all SSE subscribers
+    const totalBids = await prisma.bid.count({ where: { auctionId: numericId } });
+    broadcastAuctionUpdate(numericId, {
+      type: "NEW_BID",
+      auctionId: numericId,
+      currentPrice: result.amount,
+      numberOfBids: totalBids,
+      newBid: {
+        id: result.bidId,
+        amount: result.amount,
+        bidder: user.name || "Bidder",
+        time: new Date().toISOString(),
+      },
+    });
 
     revalidatePath(`/auctions/${numericId}`);
     revalidatePath("/auctions");
     revalidatePath("/dashboard/my-bids");
     revalidatePath("/dashboard");
-    return result;
-  } catch {
+    return { ok: true, amount: result.amount, bidId: result.bidId };
+  } catch (err) {
+    console.error("[TORI Auction] Error placing bid:", err);
     return { error: "Something went wrong. Please try again." };
   }
 }

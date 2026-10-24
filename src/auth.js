@@ -14,7 +14,7 @@ function maskEmail(email) {
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
-  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "tori-default-development-secret-for-local-demo-32chars",
   trustHost: true,
   callbacks: {
     async jwt({ token, user }) {

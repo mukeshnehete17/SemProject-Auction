@@ -18,6 +18,8 @@ import {
   PlusCircle,
   Bell,
   Layers,
+  TrendingUp,
+  ShieldAlert,
 } from "lucide-react";
 
 const buyerLinks = [
@@ -31,6 +33,7 @@ const buyerLinks = [
 
 const sellerLinks = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
+  { href: "/dashboard/seller-analytics", label: "Seller Analytics", icon: TrendingUp },
   { href: "/dashboard/my-auctions", label: "My Auctions", icon: Package },
   { href: "/dashboard/create-auction", label: "Create Auction", icon: PlusCircle },
   { href: "/dashboard/watchlist", label: "Watchlist", icon: Heart },
@@ -43,6 +46,7 @@ const adminLinks = [
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/auctions", label: "Auctions", icon: Package },
   { href: "/admin/reports", label: "Reports", icon: Flag },
+  { href: "/admin/audit-logs", label: "Audit & Moderation", icon: ShieldAlert },
   { href: "/", label: "Storefront", icon: Home },
 ];
 

@@ -3,6 +3,8 @@
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/session";
 import { deriveStatus } from "@/lib/auctions";
+import { createAuditLog } from "@/lib/audit";
+import { broadcastAuctionUpdate } from "@/lib/auction-events";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
@@ -34,6 +36,14 @@ export async function adminChangeRoleAction(userId, newRole) {
     await prisma.user.update({
       where: { id: numericId },
       data: { role: newRole },
+    });
+
+    await createAuditLog({
+      action: "ROLE_CHANGE",
+      entityType: "User",
+      entityId: numericId,
+      actorId: admin.id,
+      metadata: { previousRole: target.role, newRole, targetEmail: target.email },
     });
   } catch {
     return { error: "Something went wrong. Please try again." };
@@ -79,6 +89,20 @@ export async function adminCancelAuctionAction(auctionId) {
     await prisma.auction.update({
       where: { id: numericId },
       data: { status: "CANCELLED" },
+    });
+
+    await createAuditLog({
+      action: "AUCTION_MODERATION_CANCEL",
+      entityType: "Auction",
+      entityId: numericId,
+      actorId: admin.id,
+      metadata: { title: existing.title, sellerId: existing.sellerId },
+    });
+
+    broadcastAuctionUpdate(numericId, {
+      type: "AUCTION_CANCELLED",
+      auctionId: numericId,
+      status: "cancelled",
     });
   } catch {
     return { error: "Something went wrong. Please try again." };

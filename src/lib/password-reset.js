@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { sendPasswordResetEmail } from "@/lib/email";
 
 const TOKEN_EXPIRY_MINUTES = 30;
 
@@ -63,11 +64,16 @@ export async function requestPasswordReset(email) {
       },
     });
 
+    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+    const resetUrl = `${baseUrl}/reset-password?token=${rawToken}`;
+
+    // Dispatch via email service
+    await sendPasswordResetEmail({ to: normalizedEmail, resetUrl });
+
     // In local development, log reset link safely for testing
     if (process.env.NODE_ENV !== "production") {
-      const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
       console.log(`[TORI Auth] Password reset requested for ${normalizedEmail}:`);
-      console.log(`  Reset URL: ${baseUrl}/reset-password?token=${rawToken}`);
+      console.log(`  Reset URL: ${resetUrl}`);
     }
 
     return {

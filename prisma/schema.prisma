@@ -20,6 +20,7 @@ model User {
   notifications Notification[]
   watchlist Watchlist[]
   passwordResetTokens PasswordResetToken[]
+  auditLogs AuditLog[]
 }
 
 model Category {
@@ -36,6 +37,7 @@ model Auction {
   title            String
   description      String
   image            String?
+  images           String?
   startingPrice    Float
   currentPrice     Float
   minimumIncrement Float
@@ -102,4 +104,20 @@ model PasswordResetToken {
   createdAt DateTime  @default(now())
 
   @@index([userId])
+}
+
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  action     String
+  entityType String
+  entityId   Int?
+  actorId    Int?
+  metadata   String?
+  createdAt  DateTime @default(now())
+
+  actor      User?    @relation(fields: [actorId], references: [id])
+
+  @@index([actorId])
+  @@index([entityType, entityId])
+  @@index([action])
 }

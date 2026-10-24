@@ -39,9 +39,52 @@ export default function AuctionForm({
   initialValues,
 }) {
   const [form, setForm] = useState(initialValues || emptyForm);
+  const [images, setImages] = useState(() => {
+    if (initialValues?.images && Array.isArray(initialValues.images)) {
+      return initialValues.images;
+    }
+    if (initialValues?.imageUrl) {
+      return [initialValues.imageUrl];
+    }
+    return [];
+  });
+  const [newImageUrl, setNewImageUrl] = useState("");
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const handleAddImage = () => {
+    const url = newImageUrl.trim();
+    if (!url) return;
+    if (!isValidImageUrl(url)) {
+      setErrors((prev) => ({ ...prev, images: "Please enter a valid HTTP/HTTPS image URL." }));
+      return;
+    }
+    if (images.length >= 6) {
+      setErrors((prev) => ({ ...prev, images: "Maximum 6 images allowed per lot." }));
+      return;
+    }
+    if (images.includes(url)) {
+      setErrors((prev) => ({ ...prev, images: "This image is already added." }));
+      return;
+    }
+    setImages((prev) => [...prev, url]);
+    setNewImageUrl("");
+    setErrors((prev) => ({ ...prev, images: "" }));
+  };
+
+  const handleRemoveImage = (index) => {
+    setImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleMakeCover = (index) => {
+    if (index === 0) return;
+    setImages((prev) => {
+      const copy = [...prev];
+      const [selected] = copy.splice(index, 1);
+      return [selected, ...copy];
+    });
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -105,11 +148,15 @@ export default function AuctionForm({
     setLoading(true);
     setFormError("");
 
+    const primaryImage = images[0] || form.imageUrl.trim();
+    const allImages = images.length > 0 ? images : (primaryImage ? [primaryImage] : []);
+
     const result = await action({
       title: form.name.trim(),
       description: form.description.trim(),
       categoryId: form.category,
-      imageUrl: form.imageUrl.trim(),
+      imageUrl: primaryImage,
+      images: allImages,
       startingPrice: form.startingPrice,
       minimumIncrement: form.bidIncrement,
       startDate: form.startDate,
@@ -192,48 +239,89 @@ export default function AuctionForm({
 
         <div>
           <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-1.5">
-            Product Visual (URL)
+            Product Gallery Imagery (Up to 6 Images)
           </label>
-          <div className="relative">
-            <Input
-              name="imageUrl"
-              value={form.imageUrl}
-              onChange={handleChange}
-              placeholder="https://images.unsplash.com/..."
-              error={errors.imageUrl}
-              icon={LinkIcon}
-            />
+          <p className="text-xs text-zinc-500 mb-3">
+            Add high-resolution image URLs. The first image serves as the primary catalogue cover.
+          </p>
+
+          <div className="flex gap-2">
+            <div className="flex-1">
+              <Input
+                name="newImageUrl"
+                value={newImageUrl}
+                onChange={(e) => {
+                  setNewImageUrl(e.target.value);
+                  if (errors.images) setErrors((prev) => ({ ...prev, images: "" }));
+                }}
+                placeholder="https://images.unsplash.com/... or paste image URL"
+                icon={LinkIcon}
+                error={errors.images}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={handleAddImage}
+              className="px-4 py-2.5 rounded-lg bg-zinc-950 text-white text-xs font-bold hover:bg-zinc-800 transition-colors shrink-0 shadow-xs h-fit mt-0.5"
+            >
+              Add to Gallery
+            </button>
           </div>
 
-          {form.imageUrl && isValidImageUrl(form.imageUrl.trim()) ? (
-            <div className="relative inline-block mt-4">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={form.imageUrl.trim()}
-                alt="Preview"
-                className="w-48 h-48 object-cover rounded-xl border border-zinc-200 shadow-xs"
-                onError={(e) => {
-                  e.currentTarget.style.display = "none";
-                }}
-              />
-              <button
-                type="button"
-                onClick={() => setForm((prev) => ({ ...prev, imageUrl: "" }))}
-                className="absolute -top-2 -right-2 p-1 bg-zinc-900 text-white rounded-full hover:bg-rose-600 transition-colors shadow-xs"
-                aria-label="Remove image"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
+          {images.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-4">
+              {images.map((imgUrl, idx) => (
+                <div
+                  key={imgUrl + idx}
+                  className={`relative group rounded-xl overflow-hidden border bg-zinc-100 aspect-square ${
+                    idx === 0
+                      ? "border-indigo-600 ring-2 ring-indigo-600/20"
+                      : "border-zinc-200"
+                  }`}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={imgUrl}
+                    alt={`Lot visual ${idx + 1}`}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.opacity = "0.2";
+                    }}
+                  />
+                  {idx === 0 && (
+                    <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-zinc-950 text-white text-[9px] font-mono uppercase tracking-wider font-bold shadow-xs">
+                      Primary Cover
+                    </span>
+                  )}
+                  <div className="absolute inset-0 bg-zinc-950/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-2">
+                    {idx !== 0 && (
+                      <button
+                        type="button"
+                        onClick={() => handleMakeCover(idx)}
+                        className="px-2 py-1 rounded bg-white text-zinc-950 text-[10px] font-semibold hover:bg-zinc-100"
+                      >
+                        Make Cover
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveImage(idx)}
+                      className="p-1 rounded bg-rose-600 text-white hover:bg-rose-700 transition-colors"
+                      aria-label="Remove image"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : (
-            !form.imageUrl && (
-              <div className="mt-4 w-full border border-dashed border-zinc-200 rounded-xl p-8 text-center bg-zinc-50/50">
-                <ImageIcon className="h-7 w-7 text-zinc-300 mx-auto mb-2" />
-                <p className="text-xs text-zinc-400">
-                  Provide an image URL to preview the lot presentation
-                </p>
-              </div>
-            )
+            <div className="mt-4 w-full border border-dashed border-zinc-200 rounded-xl p-8 text-center bg-zinc-50/50">
+              <ImageIcon className="h-7 w-7 text-zinc-300 mx-auto mb-2" />
+              <p className="text-xs text-zinc-400">
+                Paste an image URL above and click &quot;Add to Gallery&quot; to preview lot imagery
+              </p>
+            </div>
           )}
         </div>
       </div>
